@@ -54,7 +54,7 @@
   .glass{background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
   .card{background:#fff;border:1px solid #E9EDF5;box-shadow:0 1px 2px rgba(16,24,40,.04),0 12px 32px -12px rgba(16,24,40,.12)}
   .btn{transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,opacity .18s}
-  .btn:hover{transform:translateY(-2px)} .btn:active{transform:translateY(0)}
+  .btn:hover:not(:disabled){transform:translateY(-2px)} .btn:active:not(:disabled){transform:translateY(0)}
 
   /* แกลเลอรีแบบ masonry */
   .masonry{column-gap:14px;columns:1}
@@ -247,8 +247,8 @@
       <p class="text-sm text-slate-500 mt-1">กรอก PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
       <input id="adminPin" type="password" placeholder="รหัส PIN"
              class="w-full mt-5 px-4 py-3 rounded-2xl border border-slate-200 brand-ring transition" />
-      <button onclick="Admin.login()" class="btn w-full mt-3 px-4 py-3 rounded-2xl brand-grad text-white font-semibold">เข้าสู่ระบบ</button>
-      <p id="adminErr" class="text-sm text-rose-600 mt-2"></p>
+      <button onclick="Admin.login()" id="btnLogin" class="btn w-full mt-3 px-4 py-3 rounded-2xl brand-grad text-white font-semibold">เข้าสู่ระบบ</button>
+      <p id="adminErr" class="text-sm text-rose-600 mt-2 font-medium"></p>
     </div>
 
     <div id="adminConsole" class="hidden">
@@ -339,7 +339,7 @@ const State = { event:null, photos:[], view:[], lbIndex:0,
                 pin:sessionStorage.getItem('pin')||'', modelsReady:false, stream:null };
 
 /* ═══════════════════════════════════════════════════════════
-   1) ฟังก์ชันช่วยเหลือ
+   1) ฟังก์ชันช่วยเหลือ (ปรับปรุงระบบดัก Error เครือข่าย)
    ═══════════════════════════════════════════════════════════ */
 const $  = id => document.getElementById(id);
 const qs = k => new URLSearchParams(location.search).get(k);
@@ -350,14 +350,31 @@ function toast(msg, ms = 2800){
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.add('hidden'), ms);
 }
 
+// เพิ่ม Try-Catch ป้องกันแอปค้างเมื่อเชื่อมต่อ GAS ไม่ได้
 async function apiGet(params){
-  const u = new URL(API); Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
-  return (await fetch(u)).json();
+  try {
+    const u = new URL(API); Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+    const res = await fetch(u);
+    return await res.json();
+  } catch (err) {
+    console.error("API GET Error:", err);
+    return { ok: false, error: 'Network Error' };
+  }
 }
-// ใช้ text/plain เพื่อเลี่ยง CORS pre-flight ที่ GAS ตอบไม่ได้
+
+// ใช้ text/plain ป้องกัน CORS และเพิ่ม Try-Catch
 async function apiPost(payload){
-  return (await fetch(API,{method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)})).json();
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("API POST Error:", err);
+    return { ok: false, error: 'Network Error' };
+  }
 }
 
 /** ใส่ธีมสี + โลโก้ผู้สนับสนุนตามข้อมูลของแต่ละงาน */
@@ -370,6 +387,7 @@ function applyBranding(ev){
   document.querySelector('meta[name=theme-color]').setAttribute('content', c);
   if (ev.sponsorLogoUrl){ $('sponsorLogo').src = ev.sponsorLogoUrl; $('sponsorLogo').classList.remove('hidden'); }
 }
+
 /** หมุนเฉดสีเล็กน้อยเพื่อสร้าง gradient อัตโนมัติ */
 function shade(hex, deg){
   const n = parseInt(hex.slice(1),16);
@@ -469,31 +487,35 @@ const Attendee = {
     Face.load(m=>$('scanStatus').textContent=m);     // อุ่นเครื่องโมเดลไว้ล่วงหน้า
   },
 
-  startScan(){ $('scanPanel').classList.remove('hidden'); $('scanPanel').scrollIntoView({behavior:'smooth',block:'center'}); },
+  startScan(){ $('scanPanel').classList.remove('hidden');$('scanPanel').scrollIntoView({behavior:'smooth',block:'center'}); },
   closeScan(){ $('scanPanel').classList.add('hidden'); Attendee.stopCam(); },
 
   async openCamera(){
     try{
       State.stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:720}});
-      const v=$('cam'); v.srcObject=State.stream; v.classList.remove('hidden');
-      $('selfiePreview').classList.add('hidden'); $('camHint').classList.add('hidden'); $('btnCapture').disabled=false;
+      const v=$('cam'); v.srcObject=State.stream; v.classList.remove('hidden');$('selfiePreview').classList.add('hidden'); $('camHint').classList.add('hidden');$('btnCapture').disabled=false;
     }catch(e){ toast('เปิดกล้องไม่ได้ ลองอัปโหลดรูปหน้าตรงแทนได้เลย'); }
   },
-  stopCam(){ if(State.stream){ State.stream.getTracks().forEach(t=>t.stop()); State.stream=null; $('cam').classList.add('hidden'); } },
+  stopCam(){ 
+    if(State.stream){ 
+      State.stream.getTracks().forEach(t=>t.stop()); 
+      State.stream=null; 
+    }
+    $('cam').srcObject = null;
+    $('cam').classList.add('hidden'); 
+  },
 
   async capture(){
     const v=$('cam'), cv=document.createElement('canvas');
     cv.width=v.videoWidth; cv.height=v.videoHeight;
     cv.getContext('2d').drawImage(v,0,0);
-    $('selfiePreview').src=cv.toDataURL('image/jpeg',.9);
-    $('selfiePreview').classList.remove('hidden'); Attendee.stopCam();
+    $('selfiePreview').src=cv.toDataURL('image/jpeg',.9);$('selfiePreview').classList.remove('hidden'); Attendee.stopCam();
     await Attendee.search(cv);
   },
   async fromFile(file){
     if(!file) return;
     const {canvas,dataUrl} = await resizeToDataUrl(file,1000,.92);
-    $('selfiePreview').src=dataUrl; $('selfiePreview').classList.remove('hidden');
-    $('camHint').classList.add('hidden'); Attendee.stopCam();
+    $('selfiePreview').src=dataUrl; $('selfiePreview').classList.remove('hidden');$('camHint').classList.add('hidden'); Attendee.stopCam();
     await Attendee.search(canvas);
   },
 
@@ -526,10 +548,8 @@ const Attendee = {
 const Gallery = {
   render(list, title){
     State.view = list;
-    $('resultBar').classList.remove('hidden');
-    $('resultTitle').textContent = title;
-    $('btnZip').classList.toggle('hidden', !list.length || !(State.event && State.event.allowDownload));
-    $('emptyState').classList.toggle('hidden', list.length>0);
+    $('resultBar').classList.remove('hidden');$('resultTitle').textContent = title;
+    $('btnZip').classList.toggle('hidden', !list.length \vert{}\vert{} !(State.event && State.event.allowDownload));$('emptyState').classList.toggle('hidden', list.length>0);
 
     $('grid').innerHTML = list.map((p,i)=>`
       <figure class="relative group rounded-2xl overflow-hidden card cursor-pointer" onclick="Gallery.openLightbox(${i})">
@@ -580,19 +600,44 @@ const Gallery = {
 };
 
 /* ═══════════════════════════════════════════════════════════
-   6) ฝั่งผู้จัดงาน
+   6) ฝั่งผู้จัดงาน (ปรับแต่งสถานะตอน Login ให้ชัดเจนขึ้น)
    ═══════════════════════════════════════════════════════════ */
 const Admin = {
   async login(){
-    const pin=$('adminPin').value.trim();
+    const pin = $('adminPin').value.trim();
+    const err = $('adminErr');
+    const btn = $('btnLogin');
+
+    if(!pin) { err.textContent = 'กรุณากรอกรหัส PIN'; return; }
+
+    // ปรับ UI ระหว่างโหลด
+    err.classList.replace('text-rose-600', 'text-slate-500');
+    err.textContent = 'กำลังตรวจสอบรหัส...';
+    btn.disabled = true;
+    btn.classList.add('opacity-70');
+
     const r = await apiGet({action:'listEvents', pin});
-    if(!r.ok){ $('adminErr').textContent='รหัส PIN ไม่ถูกต้อง'; return; }
+
+    // คืนค่า UI 
+    btn.disabled = false;
+    btn.classList.remove('opacity-70');
+
+    if(!r.ok){
+      err.classList.replace('text-slate-500', 'text-rose-600');
+      // แยกให้ออกว่ารหัสผิด หรือพังเพราะ CORS/เน็ต
+      err.textContent = r.error === 'Network Error' 
+        ? 'เชื่อมต่อไม่ได้ (ตรวจสอบการตั้งค่า Deploy ของ GAS)' 
+        : 'รหัส PIN ไม่ถูกต้อง';
+      return; 
+    }
+    
+    err.textContent = '';
     State.pin=pin; sessionStorage.setItem('pin',pin); Admin.enter(r.events);
   },
   logout(){ sessionStorage.removeItem('pin'); location.href='?'; },
 
   async enter(events){
-    $('adminGate').classList.add('hidden'); $('adminConsole').classList.remove('hidden');
+    $('adminGate').classList.add('hidden');$('adminConsole').classList.remove('hidden');
     if(!events){ const r=await apiGet({action:'listEvents', pin:State.pin}); events = r.ok ? r.events : []; }
     $('evSelect').innerHTML = events.map(e=>
       `<option value="${e.eventId}">${e.name} (${e.eventId}) · ${e.photoCount} รูป</option>`).join('')
@@ -607,7 +652,7 @@ const Admin = {
       sponsorLogoUrl:$('evSponsor').value.trim() };
     if(!body.name) return toast('กรุณากรอกชื่องานก่อน');
     const r = await apiPost(body);
-    if(!r.ok) return toast('สร้างงานไม่สำเร็จ: ' + r.error);
+    if(!r.ok) return toast('สร้างงานไม่สำเร็จ: ' + (r.error || 'Network Error'));
     const link = location.origin + location.pathname + '?event=' + r.event.eventId;
     $('qr').innerHTML=''; new QRCode($('qr'), {text:link, width:220, height:220, correctLevel:QRCode.CorrectLevel.H});
     $('qrLink').textContent = link; $('qrBox').classList.remove('hidden');
@@ -635,9 +680,7 @@ const Admin = {
                                  mimeType:'image/jpeg', dataUrl, width, height, descriptors});
         if(!r.ok) console.warn(f.name, r.error);
       }catch(e){ console.warn(f.name, e); }
-      done++; $('upBar').style.width = (done/list.length*100)+'%';
-    }
-    $('upStatus').textContent = `✅ อัปโหลดสำเร็จ ${done} รูป · บันทึกใบหน้าได้ ${faces} ใบหน้า`;
+      done++; $('upBar').style.width = (done/list.length*100)+'\%';     }$('upStatus').textContent = `✅ อัปโหลดสำเร็จ ${done} รูป · บันทึกใบหน้าได้ ${faces} ใบหน้า`;
     $('fileInput').value=''; Admin.loadPhotos(); Admin.enter();
   },
 
