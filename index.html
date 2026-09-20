@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>สแนปไฟน์ — หารูปตัวเองในงาน แค่เซลฟี่เดียว</title>
 <meta name="description" content="สแกน QR ถ่ายเซลฟี่ แล้วระบบจะค้นหารูปที่มีคุณอยู่ในงานให้ทันที" />
-<meta name="theme-color" content="#C7372B" />
+<meta name="theme-color" content="#0B0C10" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,73 +24,135 @@
 
 <style>
   :root{
-    --brand:#C7372B; --brand-2:#8E2C3E; --brand-soft:#C7372B1f;
-    --ink:#16181D; --paper:#ECEEF1; --card:#FFFFFF; --line:#D9DEE6; --muted:#6B7280;
+    --brand:#FF4D3D; --brand-2:#FF9A3C; --accent:#5EE7C8;
+    --bg:#0B0C10; --bg-2:#101218; --card:rgba(255,255,255,.055); --card-2:rgba(255,255,255,.09);
+    --ink:#F4F6FA; --muted:#98A0AE; --line:rgba(255,255,255,.12);
+    --shadow:0 24px 60px -24px rgba(0,0,0,.75);
+    --r:20px;
   }
-  html,body{background:var(--paper); color:var(--ink);}
-  body{font-size:16px; line-height:1.75; letter-spacing:.005em;
-       padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
-  h1,h2,h3{font-family:"Bai Jamjuree","IBM Plex Sans Thai",sans-serif; line-height:1.35; letter-spacing:-.01em;}
+  html[data-theme="light"]{
+    --bg:#F3F4F7; --bg-2:#FFFFFF; --card:rgba(255,255,255,.78); --card-2:rgba(255,255,255,.95);
+    --ink:#14161B; --muted:#5C6473; --line:rgba(16,18,24,.12);
+    --shadow:0 20px 50px -26px rgba(16,18,24,.35);
+  }
+  *{-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg); color:var(--ink)}
+  body{font-size:16px; line-height:1.75; letter-spacing:.005em; overflow-x:hidden;
+       padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+  h1,h2,h3{font-family:"Bai Jamjuree","IBM Plex Sans Thai",sans-serif; line-height:1.3; letter-spacing:-.015em}
 
-  .brand-bg{background:var(--brand)} .brand-text{color:var(--brand)}
-  .brand-grad{background-image:linear-gradient(135deg,var(--brand),var(--brand-2))}
-  .brand-ring:focus{outline:none;box-shadow:0 0 0 3px var(--brand-soft);border-color:var(--brand)}
-  :focus-visible{outline:2px solid var(--brand); outline-offset:2px}
+  /* ── ฉากหลัง: ออโรรา + เกรน ── */
+  .aurora{position:fixed;inset:-20% -10%;z-index:-2;filter:blur(90px);opacity:.55;pointer-events:none}
+  .aurora i{position:absolute;display:block;border-radius:50%;mix-blend-mode:screen}
+  html[data-theme="light"] .aurora{opacity:.4;mix-blend-mode:normal}
+  .a1{width:52vw;height:52vw;left:-8vw;top:-6vw;background:radial-gradient(circle,var(--brand),transparent 62%);animation:drift 22s ease-in-out infinite}
+  .a2{width:46vw;height:46vw;right:-6vw;top:10vh;background:radial-gradient(circle,var(--brand-2),transparent 62%);animation:drift 28s ease-in-out infinite reverse}
+  .a3{width:40vw;height:40vw;left:24vw;bottom:-12vw;background:radial-gradient(circle,var(--accent),transparent 62%);animation:drift 34s ease-in-out infinite}
+  @keyframes drift{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(6vw,4vh,0) scale(1.12)}66%{transform:translate3d(-5vw,-3vh,0) scale(.94)}}
+  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  /* แผ่นกระดาษ + เส้นกริดแบบคอนแทคชีท */
-  .sheet{position:fixed;inset:0;z-index:-1;background:
-     linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 56px,
-     linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/56px 100%,
-     var(--paper); opacity:.45}
-  .card{background:var(--card);border:1px solid var(--line);box-shadow:0 1px 0 rgba(22,24,29,.04)}
-  .btn{transition:transform .15s ease, background .15s ease, border-color .15s ease}
-  .btn:hover:not(:disabled){transform:translateY(-1px)}
-  .btn:active:not(:disabled){transform:translateY(0)}
+  /* ── พื้นผิวกระจก ── */
+  .glass{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+         backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);box-shadow:var(--shadow)}
+  .glass-soft{background:var(--card);border:1px solid var(--line);border-radius:16px;
+         backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+  .hair{position:relative}
+  .hair::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+    background:linear-gradient(140deg,rgba(255,255,255,.35),transparent 40%,transparent 60%,rgba(255,255,255,.14));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 
-  /* กรอบมุมแบบช่องมองภาพกล้อง */
-  .bracket{position:relative}
-  .bracket::before,.bracket::after{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--brand)}
-  .bracket::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
-  .bracket::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+  .grad-text{background:linear-gradient(105deg,var(--brand),var(--brand-2) 45%,var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand-text{color:var(--brand)}
+  .brand-bg{background:linear-gradient(120deg,var(--brand),var(--brand-2))}
 
-  .masonry{column-gap:14px;columns:1}
+  /* ── ปุ่ม ── */
+  .btn{position:relative;overflow:hidden;border-radius:14px;
+       transition:transform .22s cubic-bezier(.2,.9,.3,1.4),box-shadow .22s ease,border-color .2s ease,background .2s ease}
+  .btn:hover:not(:disabled){transform:translateY(-2px)}
+  .btn:active:not(:disabled){transform:translateY(0) scale(.985)}
+  .btn-primary{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;
+    box-shadow:0 10px 26px -10px var(--brand)}
+  .btn-primary:hover:not(:disabled){box-shadow:0 16px 34px -10px var(--brand)}
+  .btn-primary::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg)}
+  .btn-primary:hover:not(:disabled)::after{animation:sheen .8s ease}
+  @keyframes sheen{to{left:140%}}
+  .btn-ghost{background:var(--card);border:1px solid var(--line);color:var(--ink);backdrop-filter:blur(10px)}
+  .btn-ghost:hover{border-color:var(--brand)}
+  .fld{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.85rem 1.1rem;color:var(--ink);
+       transition:border-color .2s,box-shadow .2s}
+  .fld::placeholder{color:var(--muted)}
+  .fld:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 22%,transparent)}
+  :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .chip{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem .9rem;border-radius:999px;
+        background:var(--card);border:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+  .pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:pd 2.2s infinite}
+  @keyframes pd{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 70%,transparent)}70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+  /* ── การ์ดเอียงตามเมาส์ ── */
+  .tilt{transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
+  .tilt:hover{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px)}
+
+  /* ── โครงตาข่ายภาพ ── */
+  .masonry{column-gap:16px;columns:1}
   @media(min-width:480px){.masonry{columns:2}}
   @media(min-width:768px){.masonry{columns:3}}
   @media(min-width:1280px){.masonry{columns:4}}
-  .masonry>*{break-inside:avoid;margin-bottom:14px}
+  .masonry>*{break-inside:avoid;margin-bottom:16px}
+  .ph{border-radius:18px;overflow:hidden;border:1px solid var(--line);position:relative;background:var(--bg-2);
+      transition:transform .3s cubic-bezier(.2,.9,.3,1.3),box-shadow .3s}
+  .ph:hover{transform:translateY(-5px) scale(1.012);box-shadow:0 22px 46px -22px rgba(0,0,0,.7)}
+  .ph img{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+  .ph:hover img{transform:scale(1.06)}
 
-  .scan-line{position:absolute;left:0;right:0;height:2px;
-    background:linear-gradient(90deg,transparent,var(--brand),transparent);
-    box-shadow:0 0 18px var(--brand);animation:sc 2s ease-in-out infinite}
-  @keyframes sc{0%,100%{top:6%}50%{top:94%}}
-  .face-frame{position:absolute;inset:16%;border:2px solid rgba(255,255,255,.7)}
-  .face-frame::before,.face-frame::after{content:"";position:absolute;background:rgba(255,255,255,.7)}
-  .face-frame::before{left:50%;top:-10px;width:1px;height:20px}
-  .face-frame::after{left:-10px;top:50%;height:1px;width:20px}
+  /* ── ช่องมองภาพ ── */
+  .viewport{position:relative;border-radius:22px;overflow:hidden;background:#07080B;
+    box-shadow:inset 0 0 0 1px var(--line),inset 0 0 60px rgba(0,0,0,.6)}
+  .brk{position:absolute;inset:14%;border-radius:16px}
+  .brk span{position:absolute;width:26px;height:26px;border:2px solid var(--accent);opacity:.9}
+  .brk span:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:10px 0 0 0;animation:bk 3s ease-in-out infinite}
+  .brk span:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 10px 0 0;animation:bk 3s ease-in-out infinite .1s}
+  .brk span:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 10px;animation:bk 3s ease-in-out infinite .2s}
+  .brk span:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 10px 0;animation:bk 3s ease-in-out infinite .3s}
+  @keyframes bk{0%,100%{transform:translate(0,0);opacity:.55}50%{transform:translate(-5px,-5px);opacity:1}}
+  .brk span:nth-child(2),.brk span:nth-child(3){animation-name:bk2}
+  @keyframes bk2{0%,100%{transform:translate(0,0);opacity:.55}50%{transform:translate(5px,-5px);opacity:1}}
+  .scan-line{position:absolute;left:6%;right:6%;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    box-shadow:0 0 22px var(--accent);animation:sc 2.4s ease-in-out infinite}
+  @keyframes sc{0%,100%{top:8%}50%{top:92%}}
 
-  .shimmer{background:linear-gradient(90deg,#E4E7EC 25%,#F3F5F8 50%,#E4E7EC 75%);
-    background-size:200% 100%;animation:sh 1.4s linear infinite}
+  /* ── สเกเลตัน / เผยตอนเลื่อน ── */
+  .shimmer{border-radius:18px;background:linear-gradient(90deg,var(--card) 25%,var(--card-2) 50%,var(--card) 75%);
+    background-size:200% 100%;animation:sh 1.5s linear infinite}
   @keyframes sh{to{background-position:-200% 0}}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.9,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  .dock{position:fixed;left:50%;transform:translateX(-50%);z-index:45;
+        bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  ::-webkit-scrollbar{width:9px}::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
   @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
-  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#C2C8D2;border-radius:99px}
 </style>
 </head>
 
 <body class="font-sans antialiased min-h-screen">
-<div class="sheet"></div>
+<div class="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+<div class="grain"></div>
 
-<header class="sticky z-40 bg-[color:var(--paper)]/90 backdrop-blur border-b border-[color:var(--line)]" style="top:env(safe-area-inset-top,0px)">
+<header class="sticky z-40 border-b" style="top:env(safe-area-inset-top,0px);border-color:var(--line);background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(16px)">
   <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
     <a href="?" class="flex items-center gap-2.5 font-display font-bold text-lg">
-      <span class="w-9 h-9 brand-bg text-white grid place-items-center text-lg rounded-sm">◎</span>
-      สแนปไฟน์
+      <span class="w-9 h-9 brand-bg text-white grid place-items-center rounded-xl text-lg shadow-lg">◎</span>
+      <span class="grad-text">สแนปไฟน์</span>
     </a>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2">
       <img id="sponsorLogo" class="h-8 hidden object-contain" alt="ผู้สนับสนุน" />
-      <button onclick="Router.go('admin')"
-        class="btn text-sm px-4 py-2 border border-[color:var(--line)] bg-white font-medium hover:border-[color:var(--brand)]">
-        สำหรับผู้จัดงาน
-      </button>
+      <button onclick="Theme.toggle()" id="themeBtn" aria-label="สลับธีม" class="btn btn-ghost w-10 h-10 grid place-items-center text-base">☾</button>
+      <button onclick="Router.go('admin')" class="btn btn-ghost text-sm px-4 py-2 font-medium">สำหรับผู้จัดงาน</button>
     </div>
   </div>
 </header>
@@ -99,224 +161,229 @@
 
   <!-- หน้าแรก -->
   <section id="view-landing" class="hidden">
-    <div class="grid lg:grid-cols-[1.1fr,.9fr] gap-12 items-center py-12 md:py-20">
-      <div>
-        <p class="text-sm text-[color:var(--muted)] flex items-center gap-2">
-          <span class="w-2 h-2 brand-bg rounded-full"></span>
-          ระบบจดจำใบหน้าทำงานในเครื่องคุณ ไม่ส่งเซลฟี่ขึ้นเซิร์ฟเวอร์
-        </p>
-        <h1 class="mt-5 text-4xl md:text-[3.4rem] font-bold" style="line-height:1.2">
-          ถ่ายเซลฟี่หนึ่งรูป<br />ได้รูปตัวเองทั้งงาน
+    <div class="grid lg:grid-cols-[1.05fr,.95fr] gap-12 items-center py-10 md:py-16">
+      <div class="reveal">
+        <span class="chip"><span class="pulse-dot"></span> ประมวลผลใบหน้าในเครื่องคุณ ไม่ส่งเซลฟี่ขึ้นเซิร์ฟเวอร์</span>
+        <h1 class="mt-6 text-4xl md:text-[3.6rem] font-bold" style="line-height:1.15">
+          ถ่ายเซลฟี่หนึ่งรูป<br /><span class="grad-text">ได้รูปตัวเองทั้งงาน</span>
         </h1>
-        <p class="mt-5 text-[color:var(--muted)] max-w-[52ch]">
+        <p class="mt-5 max-w-[52ch]" style="color:var(--muted)">
           สแกน QR ของงาน ถ่ายเซลฟี่ แล้วระบบจะดึงทุกภาพที่มีคุณอยู่มาให้ พร้อมดาวน์โหลดไฟล์ความละเอียดเต็ม
         </p>
-
         <form onsubmit="event.preventDefault();Router.openEvent(document.getElementById('joinCode').value.trim())"
-              class="mt-8 flex flex-col sm:flex-row gap-2 max-w-lg">
-          <input id="joinCode" placeholder="รหัสงาน เช่น gala-2f7k"
-                 class="flex-1 px-5 py-3.5 bg-white border border-[color:var(--line)] brand-ring font-medium" />
-          <button class="btn px-7 py-3.5 brand-bg text-white font-semibold">เข้าสู่งาน</button>
+              class="mt-8 flex flex-col sm:flex-row gap-2.5 max-w-lg">
+          <input id="joinCode" placeholder="รหัสงาน เช่น gala-2f7k" class="fld flex-1 font-medium" />
+          <button class="btn btn-primary px-8 py-3.5 font-semibold">เข้าสู่งาน</button>
         </form>
       </div>
 
-      <div class="grid grid-cols-3 gap-3">
-        <div class="aspect-[3/4] bg-white border border-[color:var(--line)]"></div>
-        <div class="aspect-[3/4] bg-[color:var(--ink)] bracket grid place-items-center text-white text-3xl">🙂</div>
-        <div class="aspect-[3/4] bg-white border border-[color:var(--line)]"></div>
-        <div class="aspect-[3/4] bg-white border border-[color:var(--line)]"></div>
-        <div class="aspect-[3/4] bg-white border border-[color:var(--line)]"></div>
-        <div class="aspect-[3/4] bg-white border border-[color:var(--line)]"></div>
+      <div class="grid grid-cols-3 gap-3 reveal">
+        <div class="aspect-[3/4] glass rounded-2xl"></div>
+        <div class="aspect-[3/4] viewport grid place-items-center text-4xl tilt" id="heroTilt">
+          🙂<div class="brk"><span></span><span></span><span></span><span></span></div><div class="scan-line"></div>
+        </div>
+        <div class="aspect-[3/4] glass rounded-2xl"></div>
+        <div class="aspect-[3/4] glass rounded-2xl"></div>
+        <div class="aspect-[3/4] glass rounded-2xl"></div>
+        <div class="aspect-[3/4] glass rounded-2xl"></div>
       </div>
     </div>
 
-    <div class="grid sm:grid-cols-3 border-t border-[color:var(--line)]">
-      <div class="p-7 sm:border-r border-[color:var(--line)]">
-        <h3 class="font-semibold">เซลฟี่ไม่ออกจากเครื่อง</h3>
-        <p class="text-sm text-[color:var(--muted)] mt-2">ใบหน้าถูกประมวลผลในเบราว์เซอร์ ระบบเก็บเฉพาะรูปของงาน</p>
+    <div class="grid sm:grid-cols-3 gap-4 mt-6">
+      <div class="glass hair p-7 reveal">
+        <div class="text-2xl">🔒</div>
+        <h3 class="font-semibold mt-3">เซลฟี่ไม่ออกจากเครื่อง</h3>
+        <p class="text-sm mt-2" style="color:var(--muted)">ใบหน้าถูกประมวลผลในเบราว์เซอร์ ระบบเก็บเฉพาะรูปของงาน</p>
       </div>
-      <div class="p-7 sm:border-r border-[color:var(--line)] border-t sm:border-t-0">
-        <h3 class="font-semibold">รู้ผลใน 2–3 วินาที</h3>
-        <p class="text-sm text-[color:var(--muted)] mt-2">ไม่ต้องรอทีมงานคัดรูปแล้วส่งให้ทีหลัง</p>
+      <div class="glass hair p-7 reveal">
+        <div class="text-2xl">⚡</div>
+        <h3 class="font-semibold mt-3">รู้ผลใน 2–3 วินาที</h3>
+        <p class="text-sm mt-2" style="color:var(--muted)">ไม่ต้องรอทีมงานคัดรูปแล้วส่งให้ทีหลัง</p>
       </div>
-      <div class="p-7 border-t sm:border-t-0 border-[color:var(--line)]">
-        <h3 class="font-semibold">ดาวน์โหลดรวดเดียว</h3>
-        <p class="text-sm text-[color:var(--muted)] mt-2">รวมรูปที่เจอทั้งหมดเป็นไฟล์ ZIP ในคลิกเดียว</p>
+      <div class="glass hair p-7 reveal">
+        <div class="text-2xl">📦</div>
+        <h3 class="font-semibold mt-3">ดาวน์โหลดรวดเดียว</h3>
+        <p class="text-sm mt-2" style="color:var(--muted)">รวมรูปที่เจอทั้งหมดเป็นไฟล์ ZIP ในคลิกเดียว</p>
       </div>
     </div>
   </section>
 
   <!-- หน้างาน -->
   <section id="view-event" class="hidden">
-    <div class="card overflow-hidden">
-      <div id="eventCover" class="h-40 md:h-56 brand-grad bg-cover bg-center relative">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent"></div>
+    <div class="glass hair overflow-hidden">
+      <div id="eventCover" class="h-40 md:h-56 brand-bg bg-cover bg-center relative">
+        <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.65),transparent)"></div>
       </div>
       <div class="p-6 md:p-7 flex flex-wrap items-end justify-between gap-5">
         <div class="min-w-[260px] flex-1">
           <h1 id="eventName" class="text-2xl md:text-3xl font-bold">ชื่องาน</h1>
-          <p id="eventMeta" class="text-[color:var(--muted)] text-sm mt-2"></p>
+          <p id="eventMeta" class="text-sm mt-2" style="color:var(--muted)"></p>
         </div>
         <div class="flex gap-2 w-full sm:w-auto">
-          <button onclick="Attendee.startScan()"
-            class="btn flex-1 sm:flex-none px-6 py-3.5 brand-bg text-white font-semibold">ค้นหารูปของฉัน</button>
-          <button onclick="Attendee.showAll()"
-            class="btn px-5 py-3.5 bg-white border border-[color:var(--line)] font-semibold hover:border-[color:var(--brand)]">ดูทั้งหมด</button>
+          <button onclick="Attendee.startScan()" class="btn btn-primary flex-1 sm:flex-none px-6 py-3.5 font-semibold">ค้นหารูปของฉัน</button>
+          <button onclick="Attendee.showAll()" class="btn btn-ghost px-5 py-3.5 font-semibold">ดูทั้งหมด</button>
         </div>
       </div>
     </div>
 
-    <div id="scanPanel" class="hidden mt-6 card p-6 md:p-8">
+    <div id="scanPanel" class="hidden mt-6 glass hair p-6 md:p-8">
       <div class="flex items-start justify-between gap-4 mb-6">
         <div>
           <h2 class="font-bold text-xl">ถ่ายเซลฟี่เพื่อค้นหา</h2>
-          <p class="text-sm text-[color:var(--muted)] mt-1">จัดใบหน้าให้อยู่ในกรอบ อยู่ในที่แสงพอ และถอดแว่นกันแดด</p>
+          <p class="text-sm mt-1" style="color:var(--muted)">จัดใบหน้าให้อยู่ในกรอบ อยู่ในที่แสงพอ และถอดแว่นกันแดด</p>
         </div>
-        <button onclick="Attendee.closeScan()" aria-label="ปิด"
-          class="btn w-9 h-9 border border-[color:var(--line)] bg-white hover:border-[color:var(--brand)]">✕</button>
+        <button onclick="Attendee.closeScan()" aria-label="ปิด" class="btn btn-ghost w-10 h-10 grid place-items-center">✕</button>
       </div>
 
       <div class="grid md:grid-cols-2 gap-7">
-        <div class="relative overflow-hidden bg-[color:var(--ink)] aspect-[4/3] grid place-items-center">
+        <div class="viewport aspect-[4/3] grid place-items-center">
           <video id="cam" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
           <img id="selfiePreview" class="w-full h-full object-cover hidden" alt="เซลฟี่ของคุณ" />
-          <div id="scanOverlay" class="hidden absolute inset-0"><div class="face-frame"></div><div class="scan-line"></div></div>
-          <p id="camHint" class="text-white/60 text-sm">แตะ “เปิดกล้อง” เพื่อเริ่ม</p>
+          <div id="scanOverlay" class="hidden absolute inset-0">
+            <div class="brk"><span></span><span></span><span></span><span></span></div><div class="scan-line"></div>
+          </div>
+          <p id="camHint" class="text-sm" style="color:var(--muted)">แตะ “เปิดกล้อง” เพื่อเริ่ม</p>
         </div>
 
         <div class="flex flex-col gap-3 justify-center">
-          <button onclick="Attendee.openCamera()" class="btn px-6 py-3.5 bg-[color:var(--ink)] text-white font-semibold">เปิดกล้อง</button>
+          <button onclick="Attendee.openCamera()" class="btn btn-ghost px-6 py-3.5 font-semibold">เปิดกล้อง</button>
           <button onclick="Attendee.capture()" id="btnCapture" disabled
-            class="btn px-6 py-3.5 brand-bg text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed">ถ่ายภาพแล้วค้นหา</button>
-          <label class="btn px-6 py-3.5 bg-white border border-[color:var(--line)] font-semibold text-center cursor-pointer hover:border-[color:var(--brand)]">
+            class="btn btn-primary px-6 py-3.5 font-semibold disabled:opacity-40 disabled:cursor-not-allowed">ถ่ายภาพแล้วค้นหา</button>
+          <label class="btn btn-ghost px-6 py-3.5 font-semibold text-center cursor-pointer">
             อัปโหลดรูปหน้าตรงแทน
             <input type="file" accept="image/*" class="hidden" onchange="Attendee.fromFile(this.files[0])" />
           </label>
 
-          <div class="mt-2 p-5 border border-[color:var(--line)] bg-[color:var(--paper)]">
+          <div class="mt-2 p-5 glass-soft">
             <label for="thr" class="text-sm flex justify-between font-semibold mb-3">
               <span>ความเข้มงวดในการจับคู่</span><span id="thrVal" class="brand-text">0.48</span>
             </label>
             <input id="thr" type="range" min="0.35" max="0.65" step="0.01" value="0.48"
                    oninput="document.getElementById('thrVal').textContent=this.value"
-                   class="w-full h-1.5 bg-[color:var(--line)] rounded-full appearance-none cursor-pointer" style="accent-color:var(--brand)" />
-            <p class="text-xs text-[color:var(--muted)] mt-2">ค่าน้อย = เข้มงวดขึ้น ได้รูปน้อยลงแต่แม่นกว่า</p>
+                   class="w-full h-1.5 rounded-full appearance-none cursor-pointer" style="accent-color:var(--brand);background:var(--line)" />
+            <p class="text-xs mt-2" style="color:var(--muted)">ค่าน้อย = เข้มงวดขึ้น ได้รูปน้อยลงแต่แม่นกว่า</p>
           </div>
           <p id="scanStatus" role="status" class="text-sm font-semibold brand-text min-h-[1.5rem]"></p>
         </div>
       </div>
     </div>
 
-    <div id="resultBar" class="hidden mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--line)] pb-4">
+    <div id="resultBar" class="hidden mt-8 flex flex-wrap items-center justify-between gap-3 pb-4 border-b" style="border-color:var(--line)">
       <h2 id="resultTitle" class="font-bold text-lg"></h2>
       <div class="flex gap-2 w-full sm:w-auto">
-        <button id="btnZip" onclick="Gallery.downloadZip()"
-          class="btn flex-1 sm:flex-none px-5 py-2.5 brand-bg text-white text-sm font-semibold">โหลดทั้งหมด (ZIP)</button>
-        <button onclick="Attendee.startScan()"
-          class="btn px-5 py-2.5 bg-white border border-[color:var(--line)] text-sm font-semibold hover:border-[color:var(--brand)]">ค้นหาใหม่</button>
+        <button id="btnZip" onclick="Gallery.downloadZip()" class="btn btn-primary flex-1 sm:flex-none px-5 py-2.5 text-sm font-semibold">โหลดทั้งหมด (ZIP)</button>
+        <button onclick="Attendee.startScan()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold">ค้นหาใหม่</button>
       </div>
     </div>
 
     <div id="grid" class="masonry mt-5"></div>
-    <div id="emptyState" class="hidden text-center py-20 mt-5 card">
-      <p class="font-bold text-lg">ยังไม่พบรูปที่ตรงกับใบหน้าของคุณ</p>
-      <p class="text-sm mt-2 text-[color:var(--muted)] max-w-sm mx-auto">ถ่ายเซลฟี่ใหม่ในที่สว่างขึ้น หรือเลื่อนค่าความเข้มงวดให้สูงขึ้นแล้วลองอีกครั้ง</p>
+    <div id="emptyState" class="hidden text-center py-20 mt-5 glass hair">
+      <div class="text-4xl">🔍</div>
+      <p class="font-bold text-lg mt-3">ยังไม่พบรูปที่ตรงกับใบหน้าของคุณ</p>
+      <p class="text-sm mt-2 max-w-sm mx-auto" style="color:var(--muted)">ถ่ายเซลฟี่ใหม่ในที่สว่างขึ้น หรือเลื่อนค่าความเข้มงวดให้สูงขึ้นแล้วลองอีกครั้ง</p>
+    </div>
+
+    <div id="dock" class="dock hidden sm:hidden">
+      <div class="glass hair px-2 py-2 flex gap-2 rounded-full">
+        <button onclick="Attendee.startScan()" class="btn btn-primary px-5 py-2.5 text-sm font-semibold rounded-full">เซลฟี่ค้นหา</button>
+        <button onclick="Attendee.showAll()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold rounded-full">ดูทั้งหมด</button>
+      </div>
     </div>
   </section>
 
   <!-- หน้าผู้จัดงาน -->
   <section id="view-admin" class="hidden">
-    <div id="adminGate" class="max-w-md mx-auto mt-16 card p-9">
+    <div id="adminGate" class="max-w-md mx-auto mt-16 glass hair p-9">
       <h2 class="font-bold text-2xl">เข้าสู่ระบบผู้จัดงาน</h2>
-      <p class="text-sm text-[color:var(--muted)] mt-2">กรอกรหัส PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
+      <p class="text-sm mt-2" style="color:var(--muted)">กรอกรหัส PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
       <input id="adminPin" type="password" inputmode="numeric" placeholder="••••••"
              onkeydown="if(event.key==='Enter')Admin.login()"
-             class="w-full mt-7 px-5 py-4 bg-[color:var(--paper)] border border-[color:var(--line)] brand-ring text-center text-xl tracking-[.4em] font-semibold" />
-      <button onclick="Admin.login()" id="btnLogin" class="btn w-full mt-4 px-4 py-4 brand-bg text-white font-semibold flex items-center justify-center gap-2">
+             class="fld mt-7 text-center text-xl tracking-[.4em] font-semibold" />
+      <button onclick="Admin.login()" id="btnLogin" class="btn btn-primary w-full mt-4 px-4 py-4 font-semibold flex items-center justify-center gap-2">
         <svg id="loginSpinner" class="hidden animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
         </svg>
         <span id="loginBtnText">เข้าสู่ระบบ</span>
       </button>
-      <p id="adminErr" role="alert" class="text-sm text-rose-700 mt-4 font-semibold text-center h-5"></p>
+      <p id="adminErr" role="alert" class="text-sm mt-4 font-semibold text-center h-5" style="color:#FF6B6B"></p>
     </div>
 
     <div id="adminConsole" class="hidden">
-      <div class="flex items-center justify-between flex-wrap gap-4 border-b border-[color:var(--line)] pb-5">
+      <div class="flex items-center justify-between flex-wrap gap-4 pb-5 border-b" style="border-color:var(--line)">
         <div>
-          <h2 class="text-2xl md:text-3xl font-bold">แผงควบคุมผู้จัดงาน</h2>
-          <p class="text-sm text-[color:var(--muted)] mt-1">สร้างงาน สร้าง QR และอัปโหลดรูปเข้าระบบ</p>
+          <h2 class="text-2xl md:text-3xl font-bold">แผงควบคุม<span class="grad-text">ผู้จัดงาน</span></h2>
+          <p class="text-sm mt-1" style="color:var(--muted)">สร้างงาน สร้าง QR และอัปโหลดรูปเข้าระบบ</p>
         </div>
-        <button onclick="Admin.logout()" class="btn text-sm px-5 py-2.5 bg-white border border-[color:var(--line)] font-semibold hover:border-[color:var(--brand)]">ออกจากระบบ</button>
+        <button onclick="Admin.logout()" class="btn btn-ghost text-sm px-5 py-2.5 font-semibold">ออกจากระบบ</button>
       </div>
 
       <div class="grid lg:grid-cols-2 gap-6 mt-7">
-        <div class="card p-7">
+        <div class="glass hair p-7">
           <h3 class="font-bold text-lg">สร้างงานใหม่</h3>
           <div class="grid gap-3 mt-5">
-            <input id="evName" placeholder="ชื่องาน เช่น งานเลี้ยงปีใหม่บริษัท 2569"
-                   class="px-4 py-3 bg-[color:var(--paper)] border border-[color:var(--line)] brand-ring" />
+            <input id="evName" placeholder="ชื่องาน เช่น งานเลี้ยงปีใหม่บริษัท 2569" class="fld" />
             <div class="grid grid-cols-2 gap-3">
-              <input id="evDate" type="date" class="px-4 py-3 bg-[color:var(--paper)] border border-[color:var(--line)] brand-ring" />
-              <input id="evVenue" placeholder="สถานที่จัดงาน" class="px-4 py-3 bg-[color:var(--paper)] border border-[color:var(--line)] brand-ring" />
+              <input id="evDate" type="date" class="fld" />
+              <input id="evVenue" placeholder="สถานที่จัดงาน" class="fld" />
             </div>
             <div class="grid grid-cols-2 gap-3 items-center">
-              <label class="text-sm flex items-center gap-3 px-4 py-2 bg-[color:var(--paper)] border border-[color:var(--line)]">
+              <label class="text-sm flex items-center gap-3 px-4 py-2 glass-soft">
                 สีธีมงาน
-                <input id="evColor" type="color" value="#C7372B" class="w-9 h-9 border-0 cursor-pointer p-0 bg-transparent" />
+                <input id="evColor" type="color" value="#FF4D3D" class="w-9 h-9 border-0 cursor-pointer p-0 bg-transparent" />
               </label>
-              <input id="evSponsor" placeholder="ลิงก์โลโก้ผู้สนับสนุน" class="px-4 py-3 bg-[color:var(--paper)] border border-[color:var(--line)] brand-ring" />
+              <input id="evSponsor" placeholder="ลิงก์โลโก้ผู้สนับสนุน" class="fld" />
             </div>
-            <button onclick="Admin.createEvent()" class="btn mt-1 px-5 py-3.5 brand-bg text-white font-semibold">สร้างงานและ QR</button>
+            <button onclick="Admin.createEvent()" class="btn btn-primary mt-1 px-5 py-3.5 font-semibold">สร้างงานและ QR</button>
           </div>
 
-          <div id="qrBox" class="hidden mt-7 p-6 border border-[color:var(--line)] bg-[color:var(--paper)] text-center">
-            <div id="qr" class="inline-block bg-white p-3 border border-[color:var(--line)]"></div>
-            <p id="qrLink" class="text-xs text-[color:var(--muted)] mt-4 break-all"></p>
-            <button onclick="Admin.downloadQR()" class="btn mt-4 px-6 py-2.5 bg-[color:var(--ink)] text-white text-sm font-semibold">บันทึก QR (PNG)</button>
+          <div id="qrBox" class="hidden mt-7 p-6 glass-soft text-center">
+            <div id="qr" class="inline-block bg-white p-3 rounded-xl"></div>
+            <p id="qrLink" class="text-xs mt-4 break-all" style="color:var(--muted)"></p>
+            <button onclick="Admin.downloadQR()" class="btn btn-ghost mt-4 px-6 py-2.5 text-sm font-semibold">บันทึก QR (PNG)</button>
           </div>
         </div>
 
-        <div class="card p-7">
+        <div class="glass hair p-7">
           <h3 class="font-bold text-lg">อัปโหลดรูปภาพ</h3>
-          <select id="evSelect" onchange="Admin.loadPhotos()"
-                  class="w-full mt-5 px-4 py-3.5 bg-[color:var(--paper)] border border-[color:var(--line)] brand-ring font-medium cursor-pointer"></select>
+          <select id="evSelect" onchange="Admin.loadPhotos()" class="fld mt-5 font-medium cursor-pointer"></select>
 
-          <label id="dropZone"
-            class="mt-4 block border border-dashed border-[color:var(--line)] p-10 text-center cursor-pointer hover:border-[color:var(--brand)] transition-colors">
-            <p class="font-semibold">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวางตรงนี้</p>
-            <p class="text-xs text-[color:var(--muted)] mt-2">รองรับ JPG และ PNG ระบบจะย่อขนาดและสแกนใบหน้าให้อัตโนมัติ</p>
+          <label id="dropZone" class="mt-4 block p-10 text-center cursor-pointer rounded-2xl transition-colors"
+                 style="border:1.5px dashed var(--line)">
+            <div class="text-3xl">📤</div>
+            <p class="font-semibold mt-2">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวางตรงนี้</p>
+            <p class="text-xs mt-2" style="color:var(--muted)">รองรับ JPG และ PNG ระบบจะย่อขนาดและสแกนใบหน้าให้อัตโนมัติ</p>
             <input id="fileInput" type="file" accept="image/*" multiple class="hidden" onchange="Admin.queue(this.files)" />
           </label>
 
           <div class="mt-5">
-            <div class="h-2 bg-[color:var(--line)] overflow-hidden">
+            <div class="h-2 rounded-full overflow-hidden" style="background:var(--line)">
               <div id="upBar" class="h-full brand-bg w-0 transition-all duration-300"></div>
             </div>
-            <p id="upStatus" class="text-sm font-semibold text-[color:var(--muted)] mt-3">พร้อมทำงาน</p>
+            <p id="upStatus" class="text-sm font-semibold mt-3" style="color:var(--muted)">พร้อมทำงาน</p>
           </div>
         </div>
       </div>
 
-      <div class="mt-10 flex items-center justify-between border-b border-[color:var(--line)] pb-4 mb-5">
+      <div class="mt-10 flex items-center justify-between pb-4 mb-5 border-b" style="border-color:var(--line)">
         <h3 class="font-bold text-xl">รูปในงานนี้</h3>
-        <span id="adminCount" class="text-sm font-semibold text-[color:var(--muted)]">0 รูป</span>
+        <span id="adminCount" class="text-sm font-semibold" style="color:var(--muted)">0 รูป</span>
       </div>
       <div id="adminGrid" class="masonry"></div>
     </div>
   </section>
 </main>
 
-<div id="lightbox" class="hidden fixed inset-0 z-50 bg-black/95 items-center justify-center p-4">
-  <button onclick="Gallery.closeLightbox()" aria-label="ปิด" class="absolute top-5 right-6 text-white/70 hover:text-white text-3xl">✕</button>
-  <button onclick="Gallery.step(-1)" aria-label="ก่อนหน้า" class="absolute left-3 md:left-8 text-white/50 hover:text-white text-5xl px-2">‹</button>
-  <img id="lbImg" alt="" class="max-h-[82vh] max-w-full object-contain" />
-  <button onclick="Gallery.step(1)" aria-label="ถัดไป" class="absolute right-3 md:right-8 text-white/50 hover:text-white text-5xl px-2">›</button>
-  <a id="lbDl" target="_blank" rel="noopener" class="btn absolute bottom-8 px-7 py-3.5 brand-bg text-white font-semibold">ดาวน์โหลดความละเอียดเต็ม</a>
+<div id="lightbox" class="hidden fixed inset-0 z-50 items-center justify-center p-4" style="background:rgba(4,5,8,.94);backdrop-filter:blur(8px)">
+  <button onclick="Gallery.closeLightbox()" aria-label="ปิด" class="absolute top-5 right-6 text-white/60 hover:text-white text-3xl">✕</button>
+  <button onclick="Gallery.step(-1)" aria-label="ก่อนหน้า" class="absolute left-3 md:left-8 text-white/45 hover:text-white text-5xl px-2">‹</button>
+  <img id="lbImg" alt="" class="max-h-[80vh] max-w-full object-contain rounded-2xl shadow-2xl" />
+  <button onclick="Gallery.step(1)" aria-label="ถัดไป" class="absolute right-3 md:right-8 text-white/45 hover:text-white text-5xl px-2">›</button>
+  <a id="lbDl" target="_blank" rel="noopener" class="btn btn-primary absolute bottom-8 px-7 py-3.5 font-semibold">ดาวน์โหลดความละเอียดเต็ม</a>
 </div>
 
-<div id="toast" role="status" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] hidden px-5 py-3.5 bg-[color:var(--ink)] text-white text-sm font-medium shadow-xl"></div>
+<div id="toast" role="status" class="fixed left-1/2 -translate-x-1/2 z-[60] hidden px-5 py-3.5 glass hair text-sm font-medium"
+     style="bottom:calc(84px + env(safe-area-inset-bottom,0px))"></div>
 
 <script>
 /* 0) ตั้งค่า ─────────────────────────────────────────── */
@@ -331,6 +398,15 @@ const qs = k => new URLSearchParams(location.search).get(k);
 const thNum = n => Number(n||0).toLocaleString('th-TH');
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c =>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ธีมสว่าง/มืด */
+const Theme = {
+  init(){ const t=localStorage.getItem('theme')|| (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'); Theme.set(t); },
+  set(t){ document.documentElement.dataset.theme=t; localStorage.setItem('theme',t);
+          $('themeBtn').textContent = t==='light'?'☀':'☾';
+          document.querySelector('meta[name=theme-color]').setAttribute('content', t==='light'?'#F3F4F7':'#0B0C10'); },
+  toggle(){ Theme.set(document.documentElement.dataset.theme==='light'?'dark':'light'); }
+};
 
 function toast(msg, ms=3000){
   const t=$('toast'); t.textContent=msg; t.classList.remove('hidden');
@@ -350,11 +426,9 @@ async function apiPost(payload){
   }catch(err){ console.error('API POST:',err); return {ok:false, error:'Network Error'}; }
 }
 function applyBranding(ev){
-  const c=ev.themeColor||'#C7372B', root=document.documentElement.style;
+  const c=ev.themeColor||'#FF4D3D', root=document.documentElement.style;
   root.setProperty('--brand',c);
   root.setProperty('--brand-2',shade(c,-28));
-  root.setProperty('--brand-soft',c+'1f');
-  document.querySelector('meta[name=theme-color]').setAttribute('content',c);
   if(ev.sponsorLogoUrl){ $('sponsorLogo').src=ev.sponsorLogoUrl; $('sponsorLogo').classList.remove('hidden'); }
 }
 function shade(hex,deg){
@@ -378,13 +452,16 @@ function resizeToDataUrl(file,maxSide=2000,quality=.86){
     img.src=url;
   });
 }
+/* เผยองค์ประกอบตอนเลื่อนถึง */
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.12});
+const observeReveals=()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el));
 
 /* 2) เอนจินจดจำใบหน้า (ทำงานในเครื่อง 100%) ───────── */
 const Face = {
   _loading:null,
   load(status){
     if(State.modelsReady) return Promise.resolve();
-    if(!Face._loading){                       // กันโหลดโมเดลซ้ำซ้อน
+    if(!Face._loading){
       status && status('กำลังโหลดโมเดล AI…');
       Face._loading = (async()=>{
         await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
@@ -423,9 +500,10 @@ const Router = {
     const ev=qs('event'), admin=qs('admin')||location.hash==='#admin';
     if(admin) return Router.go('admin');
     if(ev)    return Attendee.loadEvent(ev);
-    Router.show('landing');
+    Router.show('landing'); observeReveals();
   },
-  show(n){ ['landing','event','admin'].forEach(v=>$('view-'+v).classList.toggle('hidden',v!==n)); },
+  show(n){ ['landing','event','admin'].forEach(v=>$('view-'+v).classList.toggle('hidden',v!==n));
+           $('dock').classList.toggle('hidden', n!=='event'); },
   go(n){
     if(n==='admin'){ Router.show('admin'); State.pin?Admin.enter():$('adminGate').classList.remove('hidden'); }
     else Router.show(n);
@@ -450,7 +528,7 @@ const Attendee = {
     const p=await apiGet({action:'listPhotos', eventId:id});
     State.photos=p.ok?p.photos:[];
     $('grid').innerHTML='';
-    Face.load(m=>$('scanStatus').textContent=m).catch(()=>{});   // อุ่นเครื่องโมเดลล่วงหน้า
+    Face.load(m=>$('scanStatus').textContent=m).catch(()=>{});
   },
   startScan(){ $('scanPanel').classList.remove('hidden'); $('scanPanel').scrollIntoView({behavior:'smooth',block:'center'}); },
   closeScan(){ $('scanPanel').classList.add('hidden'); Attendee.stopCam(); },
@@ -520,18 +598,20 @@ const Gallery = {
     $('emptyState').classList.toggle('hidden', list.length>0);
 
     $('grid').innerHTML=list.map((p,i)=>`
-      <figure class="relative group overflow-hidden card cursor-pointer" onclick="Gallery.openLightbox(${i})">
+      <figure class="ph group cursor-pointer reveal" style="transition-delay:${Math.min(i,10)*40}ms" onclick="Gallery.openLightbox(${i})">
         <img src="${esc(p.thumbUrl)}" loading="lazy" decoding="async" alt="${esc(p.fileName)}"
-             class="w-full block bg-[color:var(--paper)]" onerror="this.src='${esc(p.viewUrl)}'" />
+             class="w-full block" onerror="this.src='${esc(p.viewUrl)}'" />
         <figcaption class="absolute inset-x-0 bottom-0 p-3 flex justify-between items-center
-                     bg-gradient-to-t from-black/75 to-transparent opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                     opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
+                    style="background:linear-gradient(to top,rgba(0,0,0,.8),transparent)">
           ${p._score!==undefined
-            ? `<span class="text-[11px] text-white px-2.5 py-1 bg-white/15 backdrop-blur-sm border border-white/25">ตรงกัน ${Math.round((1-p._score)*100)}%</span>`
+            ? `<span class="text-[11px] text-white px-2.5 py-1 rounded-full" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(6px)">ตรงกัน ${Math.round((1-p._score)*100)}%</span>`
             : '<span></span>'}
           <a href="${esc(p.downloadUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
-             class="text-xs bg-white text-[color:var(--ink)] px-3 py-1 font-semibold">บันทึก</a>
+             class="text-xs bg-white text-black px-3 py-1 rounded-full font-semibold">บันทึก</a>
         </figcaption>
       </figure>`).join('');
+    observeReveals();
   },
   openLightbox(i){
     State.lbIndex=i; const p=State.view[i];
@@ -592,7 +672,7 @@ const Admin = {
     sel.innerHTML = events.map(e=>
       `<option value="${esc(e.eventId)}">${esc(e.name)} (${esc(e.eventId)}) · ${thNum(e.photoCount)} รูป</option>`).join('')
       || '<option value="">ยังไม่มีงาน กรุณาสร้างงานใหม่</option>';
-    if(prev && events.some(e=>e.eventId===prev)) sel.value=prev;   // คงงานที่เลือกไว้
+    if(prev && events.some(e=>e.eventId===prev)) sel.value=prev;
     Admin.loadPhotos();
   },
 
@@ -615,7 +695,6 @@ const Admin = {
     const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='event-qr.png'; a.click();
   },
 
-  /** ย่อรูป → อ่านใบหน้าในเครื่อง → ส่ง base64 + descriptor ขึ้น GAS */
   async queue(files){
     const eventId=$('evSelect').value;
     if(!eventId) return toast('สร้างหรือเลือกงานก่อนอัปโหลด');
@@ -648,13 +727,13 @@ const Admin = {
     const photos=r.ok?r.photos:[];
     $('adminCount').textContent=`${thNum(photos.length)} รูป`;
     $('adminGrid').innerHTML=photos.map(p=>`
-      <figure class="relative overflow-hidden card group">
+      <figure class="ph group">
         <img src="${esc(p.thumbUrl)}" loading="lazy" alt="${esc(p.fileName)}" class="w-full block" />
         <figcaption class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span class="text-[11px] bg-black/65 text-white px-2.5 py-1 backdrop-blur-sm">${thNum(p.faceCount)} ใบหน้า</span>
-          <button onclick="Admin.del('${esc(p.photoId)}')" class="text-[11px] bg-rose-700 text-white px-2.5 py-1 font-semibold">ลบ</button>
+          <span class="text-[11px] text-white px-2.5 py-1 rounded-full" style="background:rgba(0,0,0,.6);backdrop-filter:blur(6px)">${thNum(p.faceCount)} ใบหน้า</span>
+          <button onclick="Admin.del('${esc(p.photoId)}')" class="text-[11px] text-white px-2.5 py-1 rounded-full font-semibold" style="background:#E23D50">ลบ</button>
         </figcaption>
-      </figure>`).join('') || '<p class="text-sm text-[color:var(--muted)]">ยังไม่มีรูปในงานนี้ อัปโหลดรูปแรกได้เลย</p>';
+      </figure>`).join('') || '<p class="text-sm" style="color:var(--muted)">ยังไม่มีรูปในงานนี้ อัปโหลดรูปแรกได้เลย</p>';
   },
   async del(photoId){
     if(!confirm('ลบรูปนี้ถาวรใช่หรือไม่')) return;
@@ -665,12 +744,23 @@ const Admin = {
 };
 
 /* 7) เริ่มระบบ ──────────────────────────────────────── */
+Theme.init();
 ['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault()));
 const dz=$('dropZone');
 if(dz){
-  dz.addEventListener('dragover',()=>dz.style.borderColor='var(--brand)');
-  dz.addEventListener('dragleave',()=>dz.style.borderColor='');
-  dz.addEventListener('drop',e=>{ dz.style.borderColor=''; Admin.queue(e.dataTransfer.files); });
+  dz.addEventListener('dragover',()=>{dz.style.borderColor='var(--brand)';dz.style.background='var(--card)'});
+  dz.addEventListener('dragleave',()=>{dz.style.borderColor='';dz.style.background=''});
+  dz.addEventListener('drop',e=>{ dz.style.borderColor='';dz.style.background=''; Admin.queue(e.dataTransfer.files); });
+}
+/* การ์ดฮีโร่เอียงตามเมาส์ */
+const ht=$('heroTilt');
+if(ht){
+  ht.addEventListener('mousemove',e=>{
+    const r=ht.getBoundingClientRect();
+    ht.style.setProperty('--ry',((e.clientX-r.left)/r.width-.5)*14+'deg');
+    ht.style.setProperty('--rx',(.5-(e.clientY-r.top)/r.height)*14+'deg');
+  });
+  ht.addEventListener('mouseleave',()=>{ht.style.setProperty('--ry','0deg');ht.style.setProperty('--rx','0deg')});
 }
 document.addEventListener('keydown',e=>{
   if($('lightbox').classList.contains('flex')){
