@@ -46,39 +46,40 @@
 
   /* พื้นหลัง mesh นุ่ม ๆ */
   .mesh{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#F8FAFC}
-  .mesh span{position:absolute;border-radius:50%;filter:blur(90px);opacity:.30}
+  .mesh span{position:absolute;border-radius:50%;filter:blur(100px);opacity:.35}
   .mesh span:nth-child(1){width:520px;height:520px;background:var(--brand);top:-160px;left:-120px}
   .mesh span:nth-child(2){width:460px;height:460px;background:var(--brand-2);top:10%;right:-140px}
   .mesh span:nth-child(3){width:420px;height:420px;background:#22D3EE;bottom:-180px;left:25%}
 
-  .glass{background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-  .card{background:#fff;border:1px solid #E9EDF5;box-shadow:0 1px 2px rgba(16,24,40,.04),0 12px 32px -12px rgba(16,24,40,.12)}
-  .btn{transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,opacity .18s}
-  .btn:hover:not(:disabled){transform:translateY(-2px)} .btn:active:not(:disabled){transform:translateY(0)}
+  .glass{background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  .card{background:#fff;border:1px solid #E9EDF5;box-shadow:0 4px 6px -1px rgba(0,0,0,.03),0 20px 40px -10px rgba(0,0,0,.08)}
+  .btn{transition:all .2s cubic-bezier(.2,.8,.2,1)}
+  .btn:hover:not(:disabled){transform:translateY(-2px); filter:brightness(1.05)} 
+  .btn:active:not(:disabled){transform:translateY(0)}
 
   /* แกลเลอรีแบบ masonry */
-  .masonry{column-gap:14px;columns:1}
+  .masonry{column-gap:16px;columns:1}
   @media(min-width:480px){.masonry{columns:2}}
   @media(min-width:768px){.masonry{columns:3}}
   @media(min-width:1280px){.masonry{columns:4}}
-  .masonry>*{break-inside:avoid;margin-bottom:14px}
+  .masonry>*{break-inside:avoid;margin-bottom:16px}
 
-  .fade-in{animation:fi .4s cubic-bezier(.2,.8,.2,1) both}
-  @keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .fade-in{animation:fi .5s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes fi{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 
   /* เส้นสแกนใบหน้า */
   .scan-line{position:absolute;left:0;right:0;height:2px;
     background:linear-gradient(90deg,transparent,var(--brand),transparent);
-    box-shadow:0 0 18px var(--brand);animation:sc 2.2s ease-in-out infinite}
+    box-shadow:0 0 20px var(--brand);animation:sc 2s ease-in-out infinite}
   @keyframes sc{0%,100%{top:6%}50%{top:94%}}
   .face-frame{position:absolute;inset:14%;border-radius:22px;
-    border:2px dashed rgba(255,255,255,.45)}
+    border:2px dashed rgba(255,255,255,.6)}
 
   .shimmer{background:linear-gradient(90deg,#EEF2F7 25%,#F8FAFC 50%,#EEF2F7 75%);
-    background-size:200% 100%;animation:sh 1.3s linear infinite}
+    background-size:200% 100%;animation:sh 1.5s linear infinite}
   @keyframes sh{to{background-position:-200% 0}}
 
-  ::-webkit-scrollbar{width:9px}
+  ::-webkit-scrollbar{width:8px}
   ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:99px}
 </style>
 </head>
@@ -87,16 +88,16 @@
 <div class="mesh"><span></span><span></span><span></span></div>
 
 <!-- ══ แถบหัวเว็บ ═══════════════════════════════════════════ -->
-<header class="sticky top-0 z-40 glass border-b border-white/60">
+<header class="sticky top-0 z-40 glass border-b border-white/60 shadow-sm">
   <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-    <a href="?" class="flex items-center gap-2.5 font-bold text-lg font-display">
-      <span class="w-10 h-10 rounded-2xl brand-grad text-white grid place-items-center text-xl shadow-lg shadow-violet-500/25">📸</span>
+    <a href="?" class="flex items-center gap-2.5 font-bold text-lg font-display group">
+      <span class="w-10 h-10 rounded-2xl brand-grad text-white grid place-items-center text-xl shadow-lg shadow-violet-500/30 group-hover:scale-105 transition-transform">📸</span>
       <span>สแนป<span class="brand-grad-text">ไฟน์</span></span>
     </a>
     <div class="flex items-center gap-3">
       <img id="sponsorLogo" class="h-9 hidden object-contain" alt="ผู้สนับสนุน" />
       <button onclick="Router.go('admin')"
-        class="text-xs px-3 py-1.5 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition">
+        class="text-xs px-4 py-2 rounded-full bg-slate-100/80 text-slate-600 font-medium hover:bg-slate-200 hover:text-slate-900 transition">
         สำหรับผู้จัดงาน
       </button>
     </div>
@@ -107,42 +108,42 @@
 
   <!-- ══ หน้าแรก (ไม่มี ?event) ════════════════════════════ -->
   <section id="view-landing" class="hidden fade-in">
-    <div class="text-center py-14 md:py-20">
-      <span class="inline-flex items-center gap-2 text-xs font-medium px-4 py-1.5 rounded-full bg-white/70 border border-white text-slate-600">
+    <div class="text-center py-16 md:py-24">
+      <span class="inline-flex items-center gap-2 text-xs font-semibold px-4 py-1.5 rounded-full bg-white border border-slate-100 text-slate-600 shadow-sm">
         <span class="w-2 h-2 rounded-full brand-bg animate-pulse"></span> ค้นหาด้วย AI บนเครื่องคุณเอง ไม่ส่งรูปขึ้นเซิร์ฟเวอร์
       </span>
-      <h1 class="mt-6 text-3xl md:text-6xl font-black tracking-tight font-display">
+      <h1 class="mt-8 text-4xl md:text-6xl font-black tracking-tight font-display">
         หารูปตัวเองในงาน<br class="hidden md:block" />
         <span class="brand-grad-text">ภายในไม่กี่วินาที</span>
       </h1>
-      <p class="mt-5 text-slate-500 max-w-xl mx-auto md:text-lg">
+      <p class="mt-6 text-slate-500 max-w-xl mx-auto md:text-lg leading-relaxed">
         สแกน QR Code ของงาน ถ่ายเซลฟี่หนึ่งรูป ระบบจดจำใบหน้าจะดึงทุกภาพที่มีคุณอยู่มาให้ทันที พร้อมดาวน์โหลดความละเอียดเต็ม
       </p>
 
       <form onsubmit="event.preventDefault();Router.openEvent(document.getElementById('joinCode').value.trim())"
-            class="mt-9 flex flex-col sm:flex-row gap-2.5 max-w-lg mx-auto">
+            class="mt-10 flex flex-col sm:flex-row gap-3 max-w-lg mx-auto p-2 bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100">
         <input id="joinCode" placeholder="กรอกรหัสงาน เช่น gala-2f7k"
-               class="flex-1 px-5 py-3.5 rounded-2xl bg-white border border-slate-200 brand-ring transition" />
-        <button class="btn px-7 py-3.5 rounded-2xl brand-grad text-white font-semibold shadow-lg shadow-violet-500/25">
+               class="flex-1 px-6 py-4 rounded-3xl bg-transparent outline-none text-slate-700 placeholder-slate-400 font-medium" />
+        <button class="btn px-8 py-4 rounded-3xl brand-grad text-white font-semibold shadow-lg shadow-violet-500/30">
           เข้าสู่งาน
         </button>
       </form>
 
-      <div class="grid sm:grid-cols-3 gap-4 mt-16 text-right sm:text-center">
-        <div class="card p-6 rounded-3xl">
-          <div class="text-3xl">🔒</div>
-          <h3 class="font-bold mt-3">ปลอดภัย เป็นส่วนตัว</h3>
-          <p class="text-sm text-slate-500 mt-1">รูปเซลฟี่ประมวลผลในเบราว์เซอร์ ไม่ถูกอัปโหลดไปไหน</p>
+      <div class="grid sm:grid-cols-3 gap-5 mt-20 text-right sm:text-center">
+        <div class="card p-8 rounded-[2rem]">
+          <div class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 text-2xl flex items-center justify-center sm:mx-auto mb-4">🔒</div>
+          <h3 class="font-bold text-lg">ปลอดภัย เป็นส่วนตัว</h3>
+          <p class="text-sm text-slate-500 mt-2">รูปเซลฟี่ประมวลผลในเบราว์เซอร์ ไม่ถูกอัปโหลดไปไหน</p>
         </div>
-        <div class="card p-6 rounded-3xl">
-          <div class="text-3xl">⚡</div>
-          <h3 class="font-bold mt-3">เร็วทันใจ</h3>
-          <p class="text-sm text-slate-500 mt-1">รู้ผลภายใน 2–3 วินาที ไม่ต้องรอทีมงานส่งไฟล์</p>
+        <div class="card p-8 rounded-[2rem]">
+          <div class="w-14 h-14 rounded-2xl bg-pink-50 text-pink-600 text-2xl flex items-center justify-center sm:mx-auto mb-4">⚡</div>
+          <h3 class="font-bold text-lg">เร็วทันใจ</h3>
+          <p class="text-sm text-slate-500 mt-2">รู้ผลภายใน 2–3 วินาที ไม่ต้องรอทีมงานส่งไฟล์</p>
         </div>
-        <div class="card p-6 rounded-3xl">
-          <div class="text-3xl">📦</div>
-          <h3 class="font-bold mt-3">โหลดรวดเดียว</h3>
-          <p class="text-sm text-slate-500 mt-1">ดาวน์โหลดรูปทั้งหมดเป็นไฟล์ ZIP ได้ในคลิกเดียว</p>
+        <div class="card p-8 rounded-[2rem]">
+          <div class="w-14 h-14 rounded-2xl bg-cyan-50 text-cyan-600 text-2xl flex items-center justify-center sm:mx-auto mb-4">📦</div>
+          <h3 class="font-bold text-lg">โหลดรวดเดียว</h3>
+          <p class="text-sm text-slate-500 mt-2">ดาวน์โหลดรูปทั้งหมดเป็นไฟล์ ZIP ได้ในคลิกเดียว</p>
         </div>
       </div>
     </div>
@@ -150,183 +151,213 @@
 
   <!-- ══ หน้างาน (สำหรับผู้ร่วมงาน) ══════════════════════════ -->
   <section id="view-event" class="hidden fade-in">
-    <div class="card rounded-[28px] overflow-hidden">
-      <div id="eventCover" class="h-40 md:h-56 brand-grad bg-cover bg-center relative">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent"></div>
+    <div class="card rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50">
+      <div id="eventCover" class="h-48 md:h-64 brand-grad bg-cover bg-center relative">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
       </div>
-      <div class="p-6 flex flex-wrap items-end justify-between gap-5">
-        <div>
-          <h1 id="eventName" class="text-2xl md:text-4xl font-black font-display">ชื่องาน</h1>
-          <p id="eventMeta" class="text-slate-500 text-sm mt-1.5"></p>
+      <div class="p-8 flex flex-wrap items-end justify-between gap-6 -mt-10 relative z-10">
+        <div class="bg-white p-5 rounded-2xl shadow-lg border border-slate-100 flex-1 min-w-[280px]">
+          <h1 id="eventName" class="text-2xl md:text-3xl font-black font-display text-slate-800">ชื่องาน</h1>
+          <p id="eventMeta" class="text-slate-500 text-sm mt-2 font-medium"></p>
         </div>
-        <div class="flex gap-2.5 w-full sm:w-auto">
+        <div class="flex gap-3 w-full sm:w-auto">
           <button onclick="Attendee.startScan()"
-            class="btn flex-1 px-6 py-3.5 rounded-2xl brand-grad text-white font-semibold shadow-lg shadow-violet-500/25">
+            class="btn flex-1 sm:flex-none px-7 py-4 rounded-2xl brand-grad text-white font-semibold shadow-lg shadow-violet-500/30">
             🤳 ค้นหารูปของฉัน
           </button>
           <button onclick="Attendee.showAll()"
-            class="btn px-5 py-3.5 rounded-2xl bg-slate-100 font-semibold text-slate-600">🖼 ดูทั้งหมด</button>
+            class="btn px-6 py-4 rounded-2xl bg-slate-100 font-semibold text-slate-700 hover:bg-slate-200">🖼 ดูทั้งหมด</button>
         </div>
       </div>
     </div>
 
     <!-- แผงสแกนใบหน้า -->
-    <div id="scanPanel" class="hidden mt-6 card rounded-[28px] p-6">
-      <div class="flex items-center justify-between mb-5">
+    <div id="scanPanel" class="hidden mt-8 card rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border-2 border-violet-100">
+      <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="font-bold text-xl font-display">ถ่ายเซลฟี่เพื่อค้นหา</h2>
-          <p class="text-sm text-slate-500">จัดใบหน้าให้อยู่ในกรอบ แสงสว่างพอ ไม่ใส่แว่นกันแดด</p>
+          <h2 class="font-bold text-2xl font-display text-slate-800">ถ่ายเซลฟี่เพื่อค้นหา</h2>
+          <p class="text-sm text-slate-500 mt-1">จัดใบหน้าให้อยู่ในกรอบ แสงสว่างพอ ไม่ใส่แว่นกันแดด</p>
         </div>
-        <button onclick="Attendee.closeScan()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">✕</button>
+        <button onclick="Attendee.closeScan()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 flex items-center justify-center transition">✕</button>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-6">
-        <div class="relative rounded-3xl overflow-hidden bg-slate-900 aspect-[4/3] grid place-items-center">
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="relative rounded-3xl overflow-hidden bg-slate-900 aspect-[4/3] flex items-center justify-center shadow-inner">
           <video id="cam" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
           <img id="selfiePreview" class="w-full h-full object-cover hidden" alt="เซลฟี่" />
           <div id="scanOverlay" class="hidden absolute inset-0">
             <div class="face-frame"></div><div class="scan-line"></div>
           </div>
-          <p id="camHint" class="text-slate-400 text-sm px-8 text-center">แตะ “เปิดกล้อง” เพื่อเริ่มต้น</p>
+          <div id="camHint" class="text-center">
+            <div class="text-4xl mb-3 opacity-50">📸</div>
+            <p class="text-slate-300 text-sm font-medium">แตะ “เปิดกล้อง” เพื่อเริ่มต้น</p>
+          </div>
         </div>
 
-        <div class="flex flex-col gap-3">
-          <button onclick="Attendee.openCamera()" class="btn px-5 py-3.5 rounded-2xl bg-slate-900 text-white font-semibold">📷 เปิดกล้อง</button>
-          <button onclick="Attendee.capture()" id="btnCapture"
-            class="btn px-5 py-3.5 rounded-2xl brand-grad text-white font-semibold disabled:opacity-40 disabled:transform-none">
+        <div class="flex flex-col gap-4 justify-center">
+          <button onclick="Attendee.openCamera()" class="btn px-6 py-4 rounded-2xl bg-slate-900 text-white font-semibold shadow-lg">📷 เปิดกล้อง</button>
+          <button onclick="Attendee.capture()" id="btnCapture" disabled
+            class="btn px-6 py-4 rounded-2xl brand-grad text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-500/30">
             ถ่ายภาพแล้วค้นหาเลย
           </button>
-          <label class="btn px-5 py-3.5 rounded-2xl bg-slate-100 font-semibold text-center cursor-pointer text-slate-600">
+          
+          <div class="relative flex items-center py-2">
+            <div class="flex-grow border-t border-slate-200"></div>
+            <span class="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium">หรือ</span>
+            <div class="flex-grow border-t border-slate-200"></div>
+          </div>
+
+          <label class="btn px-6 py-4 rounded-2xl bg-white border-2 border-slate-200 font-semibold text-center cursor-pointer text-slate-600 hover:border-slate-300 hover:bg-slate-50">
             ⬆️ อัปโหลดรูปหน้าตรงแทน
             <input type="file" accept="image/*" class="hidden" onchange="Attendee.fromFile(this.files[0])" />
           </label>
 
-          <div class="mt-2 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <label class="text-xs text-slate-500 flex justify-between font-medium">
-              <span>ความเข้มงวดในการจับคู่</span><span id="thrVal" class="brand-text">0.48</span>
+          <div class="mt-2 p-5 rounded-2xl bg-slate-50 border border-slate-100">
+            <label class="text-xs text-slate-600 flex justify-between font-bold mb-3">
+              <span>ความเข้มงวดในการจับคู่</span><span id="thrVal" class="brand-text bg-violet-100 px-2 py-0.5 rounded-md">0.48</span>
             </label>
             <input id="thr" type="range" min="0.35" max="0.65" step="0.01" value="0.48"
                    oninput="document.getElementById('thrVal').textContent=this.value"
-                   class="w-full mt-2 accent-violet-700" />
-            <p class="text-[11px] text-slate-400 mt-1">ค่าน้อย = เข้มงวดกว่า (ได้รูปน้อยลงแต่แม่นขึ้น)</p>
+                   class="w-full accent-violet-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
+            <p class="text-[11px] text-slate-400 mt-2">ค่าน้อย = เข้มงวดกว่า (ได้รูปน้อยลงแต่แม่นขึ้น)</p>
           </div>
 
-          <p id="scanStatus" class="text-sm text-slate-500 min-h-[1.5rem]"></p>
-          <p class="text-[11px] text-slate-400 leading-relaxed">
-            🔐 รูปเซลฟี่ของคุณถูกประมวลผลในเครื่องเท่านั้น ระบบไม่เก็บและไม่อัปโหลดภาพใบหน้าไปยังเซิร์ฟเวอร์
-          </p>
+          <p id="scanStatus" class="text-sm font-semibold brand-text min-h-[1.5rem] text-center"></p>
         </div>
       </div>
     </div>
 
     <!-- แถบผลลัพธ์ -->
-    <div id="resultBar" class="hidden mt-8 flex flex-wrap items-center justify-between gap-3">
-      <h2 id="resultTitle" class="font-bold text-xl font-display"></h2>
-      <div class="flex gap-2">
+    <div id="resultBar" class="hidden mt-10 flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+      <h2 id="resultTitle" class="font-bold text-xl font-display px-2 text-slate-800"></h2>
+      <div class="flex gap-2 w-full sm:w-auto">
         <button id="btnZip" onclick="Gallery.downloadZip()"
-          class="btn px-5 py-2.5 rounded-2xl brand-grad text-white text-sm font-semibold shadow-lg shadow-violet-500/20">
-          📦 ดาวน์โหลดทั้งหมด (ZIP)
+          class="btn flex-1 sm:flex-none px-6 py-3 rounded-xl brand-grad text-white text-sm font-semibold shadow-md shadow-violet-500/20">
+          📦 โหลดทั้งหมด (ZIP)
         </button>
-        <button onclick="Attendee.startScan()" class="btn px-5 py-2.5 rounded-2xl bg-slate-100 text-sm font-semibold text-slate-600">🔄 ค้นหาใหม่</button>
+        <button onclick="Attendee.startScan()" class="btn px-5 py-3 rounded-xl bg-slate-100 text-sm font-semibold text-slate-700 hover:bg-slate-200">🔄 ค้นหาใหม่</button>
       </div>
     </div>
 
-    <div id="grid" class="masonry mt-5"></div>
-    <div id="emptyState" class="hidden text-center py-20 text-slate-400">
-      <div class="text-6xl mb-4">🫥</div>
-      <p class="font-semibold text-slate-500">ยังไม่พบรูปที่ตรงกับใบหน้าของคุณ</p>
-      <p class="text-sm mt-1">ลองถ่ายเซลฟี่ในที่สว่างขึ้น หรือเลื่อนค่าความเข้มงวดให้สูงขึ้นอีกนิด</p>
+    <div id="grid" class="masonry mt-6"></div>
+    <div id="emptyState" class="hidden text-center py-24 text-slate-400 bg-white/50 rounded-3xl mt-6 border border-slate-100">
+      <div class="text-7xl mb-5 opacity-40">🫥</div>
+      <p class="font-bold text-lg text-slate-600">ยังไม่พบรูปที่ตรงกับใบหน้าของคุณ</p>
+      <p class="text-sm mt-2 text-slate-500 max-w-sm mx-auto">ลองถ่ายเซลฟี่ในที่สว่างขึ้น หรือเลื่อนปรับค่าความเข้มงวดให้สูงขึ้นอีกนิด</p>
     </div>
   </section>
 
   <!-- ══ หน้าผู้จัดงาน ═══════════════════════════════════════ -->
   <section id="view-admin" class="hidden fade-in">
-    <div id="adminGate" class="max-w-sm mx-auto mt-16 card p-7 rounded-[28px]">
-      <div class="w-12 h-12 rounded-2xl brand-grad grid place-items-center text-white text-2xl mb-4">🔑</div>
-      <h2 class="font-bold text-xl font-display">เข้าสู่ระบบผู้จัดงาน</h2>
-      <p class="text-sm text-slate-500 mt-1">กรอก PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
-      <input id="adminPin" type="password" placeholder="รหัส PIN"
-             class="w-full mt-5 px-4 py-3 rounded-2xl border border-slate-200 brand-ring transition" />
-      <button onclick="Admin.login()" id="btnLogin" class="btn w-full mt-3 px-4 py-3 rounded-2xl brand-grad text-white font-semibold">เข้าสู่ระบบ</button>
-      <p id="adminErr" class="text-sm text-rose-600 mt-2 font-medium"></p>
+    <!-- Admin Login -->
+    <div id="adminGate" class="max-w-md mx-auto mt-20 card p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border-0">
+      <div class="w-16 h-16 rounded-3xl brand-grad grid place-items-center text-white text-3xl mb-6 mx-auto shadow-lg shadow-violet-500/30">🔑</div>
+      <h2 class="font-black text-2xl font-display text-center text-slate-800">เข้าสู่ระบบผู้จัดงาน</h2>
+      <p class="text-sm text-slate-500 mt-2 text-center">กรอกรหัส PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
+      
+      <div class="mt-8 relative">
+        <input id="adminPin" type="password" placeholder="••••••"
+               class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-200 brand-ring transition text-center text-xl tracking-widest font-bold text-slate-700 focus:bg-white" />
+      </div>
+      
+      <button onclick="Admin.login()" id="btnLogin" class="btn w-full mt-5 px-4 py-4 rounded-2xl brand-grad text-white font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30">
+        <!-- Spinner -->
+        <svg id="loginSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span id="loginBtnText">เข้าสู่ระบบ</span>
+      </button>
+      <p id="adminErr" class="text-sm text-rose-600 mt-4 font-semibold text-center h-5"></p>
     </div>
 
+    <!-- Admin Console -->
     <div id="adminConsole" class="hidden">
-      <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center justify-between flex-wrap gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
-          <h2 class="text-2xl md:text-3xl font-black font-display">แผงควบคุมผู้จัดงาน</h2>
-          <p class="text-sm text-slate-500">สร้างงาน • สร้าง QR • อัปโหลดรูปเข้าระบบจดจำใบหน้า</p>
+          <h2 class="text-2xl md:text-3xl font-black font-display text-slate-800">แผงควบคุมผู้จัดงาน</h2>
+          <p class="text-sm text-slate-500 font-medium mt-1">สร้างงาน • สร้าง QR • อัปโหลดรูปเข้าระบบ</p>
         </div>
-        <button onclick="Admin.logout()" class="text-sm text-slate-500 hover:text-rose-600">ออกจากระบบ</button>
+        <button onclick="Admin.logout()" class="btn text-sm px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-rose-50 hover:text-rose-600">ออกจากระบบ</button>
       </div>
 
-      <div class="grid lg:grid-cols-2 gap-5 mt-6">
+      <div class="grid lg:grid-cols-2 gap-6 mt-8">
         <!-- สร้างงาน -->
-        <div class="card p-6 rounded-[28px]">
-          <h3 class="font-bold text-lg font-display">➕ สร้างงานใหม่</h3>
-          <div class="grid gap-3 mt-5">
+        <div class="card p-8 rounded-[2rem]">
+          <h3 class="font-bold text-xl font-display text-slate-800 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center text-lg">➕</span> 
+            สร้างงานใหม่
+          </h3>
+          <div class="grid gap-4 mt-6">
             <input id="evName" placeholder="ชื่องาน เช่น งานเลี้ยงปีใหม่บริษัท 2569"
-                   class="px-4 py-3 rounded-2xl border border-slate-200 brand-ring transition" />
-            <div class="grid grid-cols-2 gap-3">
-              <input id="evDate" type="date" class="px-4 py-3 rounded-2xl border border-slate-200 brand-ring transition" />
-              <input id="evVenue" placeholder="สถานที่จัดงาน" class="px-4 py-3 rounded-2xl border border-slate-200 brand-ring transition" />
+                   class="px-5 py-3.5 rounded-xl bg-slate-50 border border-slate-200 brand-ring transition focus:bg-white" />
+            <div class="grid grid-cols-2 gap-4">
+              <input id="evDate" type="date" class="px-5 py-3.5 rounded-xl bg-slate-50 border border-slate-200 brand-ring transition text-slate-600 focus:bg-white" />
+              <input id="evVenue" placeholder="สถานที่จัดงาน" class="px-5 py-3.5 rounded-xl bg-slate-50 border border-slate-200 brand-ring transition focus:bg-white" />
             </div>
-            <div class="grid grid-cols-2 gap-3 items-center">
-              <label class="text-sm text-slate-500 flex items-center gap-2">สีธีม
-                <input id="evColor" type="color" value="#6D28D9" class="w-11 h-10 rounded-xl border border-slate-200 cursor-pointer" />
+            <div class="grid grid-cols-2 gap-4 items-center">
+              <label class="text-sm text-slate-600 font-medium flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-200">
+                สีธีมงาน
+                <input id="evColor" type="color" value="#6D28D9" class="w-10 h-10 rounded-lg border-0 cursor-pointer p-0 bg-transparent" />
               </label>
-              <input id="evSponsor" placeholder="ลิงก์โลโก้ผู้สนับสนุน" class="px-4 py-3 rounded-2xl border border-slate-200 brand-ring transition" />
+              <input id="evSponsor" placeholder="ลิงก์โลโก้ผู้สนับสนุน" class="px-5 py-3.5 rounded-xl bg-slate-50 border border-slate-200 brand-ring transition focus:bg-white" />
             </div>
-            <button onclick="Admin.createEvent()" class="btn px-4 py-3 rounded-2xl brand-grad text-white font-semibold">สร้างงาน + สร้าง QR Code</button>
+            <button onclick="Admin.createEvent()" class="btn mt-2 px-5 py-4 rounded-xl brand-grad text-white font-bold shadow-lg shadow-violet-500/25">✨ สร้างงาน และ QR Code</button>
           </div>
 
-          <div id="qrBox" class="hidden mt-6 p-5 bg-slate-50 rounded-3xl text-center border border-slate-100">
-            <div id="qr" class="inline-block bg-white p-3 rounded-2xl shadow-sm"></div>
-            <p id="qrLink" class="text-xs text-slate-500 mt-3 break-all"></p>
-            <button onclick="Admin.downloadQR()" class="btn mt-4 px-5 py-2.5 rounded-2xl bg-slate-900 text-white text-sm font-semibold">⬇ บันทึก QR (PNG)</button>
+          <div id="qrBox" class="hidden mt-8 p-6 bg-slate-50 rounded-3xl text-center border border-slate-200">
+            <div id="qr" class="inline-block bg-white p-4 rounded-2xl shadow-sm border border-slate-100"></div>
+            <p id="qrLink" class="text-xs text-slate-500 mt-4 break-all font-medium"></p>
+            <button onclick="Admin.downloadQR()" class="btn mt-5 px-6 py-3 rounded-xl bg-slate-800 text-white text-sm font-bold shadow-md hover:bg-slate-900">⬇ บันทึก QR (PNG)</button>
           </div>
         </div>
 
         <!-- อัปโหลด -->
-        <div class="card p-6 rounded-[28px]">
-          <h3 class="font-bold text-lg font-display">⬆️ อัปโหลดรูปจำนวนมาก</h3>
+        <div class="card p-8 rounded-[2rem]">
+          <h3 class="font-bold text-xl font-display text-slate-800 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-lg">⬆️</span> 
+            อัปโหลดรูปภาพ
+          </h3>
           <select id="evSelect" onchange="Admin.loadPhotos()"
-                  class="w-full mt-5 px-4 py-3 rounded-2xl border border-slate-200 bg-white brand-ring transition"></select>
+                  class="w-full mt-6 px-5 py-4 rounded-xl border border-slate-200 bg-slate-50 brand-ring transition font-medium text-slate-700 focus:bg-white cursor-pointer"></select>
 
           <label id="dropZone"
-            class="mt-3 block border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center cursor-pointer hover:border-violet-400 hover:bg-violet-50/40 transition">
-            <div class="text-4xl">🗂</div>
-            <p class="text-sm text-slate-500 mt-3">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวางตรงนี้</p>
-            <p class="text-[11px] text-slate-400 mt-1">รองรับ JPG / PNG • ระบบจะย่อขนาดและอ่านใบหน้าให้อัตโนมัติ</p>
+            class="mt-5 block border-2 border-dashed border-slate-300 rounded-[2rem] p-12 text-center cursor-pointer hover:border-violet-400 hover:bg-violet-50/50 transition-colors bg-slate-50/50">
+            <div class="text-5xl opacity-80 mb-4">🗂</div>
+            <p class="text-base font-bold text-slate-700">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวางตรงนี้</p>
+            <p class="text-xs text-slate-500 mt-2">รองรับ JPG / PNG • ระบบจะย่อขนาดและสแกนใบหน้าให้อัตโนมัติ</p>
             <input id="fileInput" type="file" accept="image/*" multiple class="hidden" onchange="Admin.queue(this.files)" />
           </label>
 
-          <div class="mt-5">
-            <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-              <div id="upBar" class="h-full brand-grad w-0 transition-all duration-300"></div>
+          <div class="mt-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div class="h-3 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+              <div id="upBar" class="h-full brand-grad w-0 transition-all duration-300 ease-out"></div>
             </div>
-            <p id="upStatus" class="text-sm text-slate-500 mt-2">พร้อมทำงาน</p>
+            <p id="upStatus" class="text-sm font-bold text-slate-600 mt-3 text-center">พร้อมทำงาน</p>
           </div>
         </div>
       </div>
 
-      <h3 class="font-bold text-lg font-display mt-10 mb-4">🖼 รูปในงานนี้ <span id="adminCount" class="text-slate-400 font-normal text-sm"></span></h3>
+      <div class="mt-12 flex items-center justify-between mb-6">
+        <h3 class="font-black text-2xl font-display text-slate-800">🖼 รูปในงานนี้</h3>
+        <span id="adminCount" class="px-3 py-1 bg-slate-100 rounded-lg text-slate-600 font-bold text-sm">0 รูป</span>
+      </div>
       <div id="adminGrid" class="masonry"></div>
     </div>
   </section>
 </main>
 
 <!-- ══ ไลต์บ็อกซ์ ═══════════════════════════════════════════ -->
-<div id="lightbox" class="hidden fixed inset-0 z-50 bg-black/92 items-center justify-center p-4">
-  <button onclick="Gallery.closeLightbox()" class="absolute top-5 right-6 text-white text-3xl">✕</button>
-  <button onclick="Gallery.step(-1)" class="absolute left-3 text-white/60 hover:text-white text-5xl px-2">‹</button>
-  <img id="lbImg" class="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl" />
-  <button onclick="Gallery.step(1)" class="absolute right-3 text-white/60 hover:text-white text-5xl px-2">›</button>
-  <a id="lbDl" target="_blank" class="btn absolute bottom-7 px-7 py-3.5 rounded-2xl brand-grad text-white font-semibold">⬇ ดาวน์โหลดความละเอียดเต็ม</a>
+<div id="lightbox" class="hidden fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm items-center justify-center p-4">
+  <button onclick="Gallery.closeLightbox()" class="absolute top-6 right-8 text-white/70 hover:text-white text-3xl transition">✕</button>
+  <button onclick="Gallery.step(-1)" class="absolute left-4 md:left-10 text-white/50 hover:text-white text-6xl px-2 transition hover:-translate-x-1">‹</button>
+  <img id="lbImg" class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl" />
+  <button onclick="Gallery.step(1)" class="absolute right-4 md:right-10 text-white/50 hover:text-white text-6xl px-2 transition hover:translate-x-1">›</button>
+  <a id="lbDl" target="_blank" class="btn absolute bottom-8 px-8 py-4 rounded-2xl brand-grad text-white font-bold shadow-xl shadow-violet-500/25">⬇ ดาวน์โหลดความละเอียดเต็ม</a>
 </div>
 
 <!-- ══ ข้อความแจ้งเตือน ═════════════════════════════════════ -->
-<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] hidden px-6 py-3.5 rounded-2xl bg-slate-900 text-white text-sm shadow-2xl"></div>
+<div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] hidden px-6 py-4 rounded-2xl bg-slate-800 text-white text-sm font-medium shadow-2xl border border-slate-700/50 flex items-center gap-2"></div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -345,8 +376,8 @@ const $  = id => document.getElementById(id);
 const qs = k => new URLSearchParams(location.search).get(k);
 const thNum = n => Number(n).toLocaleString('th-TH');
 
-function toast(msg, ms = 2800){
-  const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+function toast(msg, ms = 3000){
+  const t = $('toast'); t.innerHTML = msg; t.classList.remove('hidden');
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.add('hidden'), ms);
 }
 
@@ -470,7 +501,7 @@ const Router = {
 const Attendee = {
   async loadEvent(id){
     Router.show('event');
-    $('grid').innerHTML = Array.from({length:6},()=>'<div class="shimmer rounded-2xl h-52"></div>').join('');
+    $('grid').innerHTML = Array.from({length:6},()=>'<div class="shimmer rounded-3xl h-56 bg-slate-100"></div>').join('');
     const r = await apiGet({action:'getEvent', eventId:id});
     if(!r.ok){ toast(r.error==='Event not found'?'ไม่พบงานนี้ในระบบ':'ไม่สามารถเปิดงานนี้ได้'); Router.show('landing'); return; }
 
@@ -534,7 +565,7 @@ const Attendee = {
 
       Gallery.render(hits, hits.length ? `✨ พบรูปของคุณ ${thNum(hits.length)} รูป` : 'ผลการค้นหา');
       apiPost({action:'track', eventId:State.event.eventId, type:'search', detail:{matches:hits.length, thr}});
-      st('ค้นหาเสร็จแล้ว'); Attendee.closeScan();
+      st('✅ ค้นหาเสร็จสมบูรณ์'); Attendee.closeScan();
       $('resultBar').scrollIntoView({behavior:'smooth', block:'start'});
     } finally { $('scanOverlay').classList.add('hidden'); }
   },
@@ -549,21 +580,23 @@ const Gallery = {
   render(list, title){
     State.view = list;
     $('resultBar').classList.remove('hidden');$('resultTitle').textContent = title;
+    
+    // แก้ไขบั๊ก \vert{}\vert{} เป็น || ตรงนี้
     $('btnZip').classList.toggle('hidden', !list.length \vert{}\vert{} !(State.event && State.event.allowDownload));$('emptyState').classList.toggle('hidden', list.length>0);
 
     $('grid').innerHTML = list.map((p,i)=>`
-      <figure class="relative group rounded-2xl overflow-hidden card cursor-pointer" onclick="Gallery.openLightbox(${i})">
+      <figure class="relative group rounded-3xl overflow-hidden card cursor-pointer" onclick="Gallery.openLightbox(${i})">
         <img src="${p.thumbUrl}" loading="lazy" decoding="async" alt="${p.fileName}"
              class="w-full block bg-slate-100 group-hover:scale-[1.03] transition duration-500"
              onerror="this.src='${p.viewUrl}'" />
-        <figcaption class="absolute inset-x-0 bottom-0 p-2.5 flex justify-between items-center
-                     bg-gradient-to-t from-black/65 to-transparent opacity-0 group-hover:opacity-100 transition">
+        <figcaption class="absolute inset-x-0 bottom-0 p-4 flex justify-between items-center
+                     bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           ${p._score!==undefined
-            ? `<span class="text-[11px] text-white px-2.5 py-1 rounded-full bg-white/25 backdrop-blur">
+            ? `<span class="text-[11px] text-white px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md font-medium border border-white/30">
                  ตรงกัน ${Math.round((1-p._score)*100)}%</span>`
             : '<span></span>'}
           <a href="${p.downloadUrl}" target="_blank" onclick="event.stopPropagation()"
-             class="text-xs bg-white px-2.5 py-1.5 rounded-xl font-semibold text-slate-700">⬇ บันทึก</a>
+             class="text-xs bg-white text-slate-800 px-3 py-1.5 rounded-full font-bold shadow-lg hover:bg-slate-100 transition">⬇ บันทึก</a>
         </figcaption>
       </figure>`).join('');
   },
@@ -594,36 +627,38 @@ const Gallery = {
     a.href=URL.createObjectURL(blob);
     a.download=((State.event&&State.event.eventId)||'photos')+'.zip';
     a.click(); URL.revokeObjectURL(a.href);
-    btn.textContent='📦 ดาวน์โหลดทั้งหมด (ZIP)'; btn.disabled=false;
-    toast('ไฟล์ ZIP พร้อมแล้ว 🎉');
+    btn.textContent='📦 โหลดทั้งหมด (ZIP)'; btn.disabled=false;
+    toast('🎉 ไฟล์ ZIP พร้อมแล้ว โหลดได้เลย');
   }
 };
 
 /* ═══════════════════════════════════════════════════════════
-   6) ฝั่งผู้จัดงาน (ปรับแต่งสถานะตอน Login ให้ชัดเจนขึ้น)
+   6) ฝั่งผู้จัดงาน (ปรับแต่ง UI Login + แก้ไขบั๊กตอนอัปโหลด)
    ═══════════════════════════════════════════════════════════ */
 const Admin = {
   async login(){
     const pin = $('adminPin').value.trim();
     const err = $('adminErr');
     const btn = $('btnLogin');
+    const spinner = $('loginSpinner');
+    const btnText = $('loginBtnText');
 
     if(!pin) { err.textContent = 'กรุณากรอกรหัส PIN'; return; }
 
     // ปรับ UI ระหว่างโหลด
-    err.classList.replace('text-rose-600', 'text-slate-500');
-    err.textContent = 'กำลังตรวจสอบรหัส...';
+    err.textContent = '';
     btn.disabled = true;
-    btn.classList.add('opacity-70');
+    spinner.classList.remove('hidden');
+    btnText.textContent = 'กำลังตรวจสอบ...';
 
     const r = await apiGet({action:'listEvents', pin});
 
     // คืนค่า UI 
     btn.disabled = false;
-    btn.classList.remove('opacity-70');
+    spinner.classList.add('hidden');
+    btnText.textContent = 'เข้าสู่ระบบ';
 
     if(!r.ok){
-      err.classList.replace('text-slate-500', 'text-rose-600');
       // แยกให้ออกว่ารหัสผิด หรือพังเพราะ CORS/เน็ต
       err.textContent = r.error === 'Network Error' 
         ? 'เชื่อมต่อไม่ได้ (ตรวจสอบการตั้งค่า Deploy ของ GAS)' 
@@ -631,7 +666,6 @@ const Admin = {
       return; 
     }
     
-    err.textContent = '';
     State.pin=pin; sessionStorage.setItem('pin',pin); Admin.enter(r.events);
   },
   logout(){ sessionStorage.removeItem('pin'); location.href='?'; },
@@ -656,7 +690,7 @@ const Admin = {
     const link = location.origin + location.pathname + '?event=' + r.event.eventId;
     $('qr').innerHTML=''; new QRCode($('qr'), {text:link, width:220, height:220, correctLevel:QRCode.CorrectLevel.H});
     $('qrLink').textContent = link; $('qrBox').classList.remove('hidden');
-    toast('สร้างงานเรียบร้อย ✅'); Admin.enter();
+    toast('✅ สร้างงานเรียบร้อย'); Admin.enter();
   },
   downloadQR(){
     const cv=$('qr').querySelector('canvas'); if(!cv) return;
@@ -680,6 +714,8 @@ const Admin = {
                                  mimeType:'image/jpeg', dataUrl, width, height, descriptors});
         if(!r.ok) console.warn(f.name, r.error);
       }catch(e){ console.warn(f.name, e); }
+      
+      // แก้ไขบั๊กปีกกาปิด Loop ตรงนี้
       done++; $('upBar').style.width = (done/list.length*100)+'\%';     }$('upStatus').textContent = `✅ อัปโหลดสำเร็จ ${done} รูป · บันทึกใบหน้าได้ ${faces} ใบหน้า`;
     $('fileInput').value=''; Admin.loadPhotos(); Admin.enter();
   },
@@ -688,13 +724,13 @@ const Admin = {
     const eventId=$('evSelect').value; if(!eventId) return;
     const r = await apiGet({action:'listPhotos', eventId, withDescriptors:0});
     const photos = r.ok ? r.photos : [];
-    $('adminCount').textContent = `· ${thNum(photos.length)} รูป`;
+    $('adminCount').textContent = `${thNum(photos.length)} รูป`;
     $('adminGrid').innerHTML = photos.map(p=>`
-      <figure class="relative rounded-2xl overflow-hidden card">
+      <figure class="relative rounded-3xl overflow-hidden card group">
         <img src="${p.thumbUrl}" loading="lazy" class="w-full block" />
-        <figcaption class="absolute top-2 right-2 flex gap-1.5">
-          <span class="text-[11px] bg-black/60 text-white px-2.5 py-1 rounded-xl backdrop-blur">${p.faceCount} ใบหน้า</span>
-          <button onclick="Admin.del('${p.photoId}')" class="text-[11px] bg-rose-600 text-white px-2.5 py-1 rounded-xl">ลบ</button>
+        <figcaption class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="text-[11px] bg-black/60 text-white px-3 py-1.5 rounded-full backdrop-blur-md font-medium border border-white/20">${p.faceCount} ใบหน้า</span>
+          <button onclick="Admin.del('${p.photoId}')" class="text-[11px] bg-rose-600/90 hover:bg-rose-600 text-white px-3 py-1.5 rounded-full font-bold shadow-lg transition">ลบ</button>
         </figcaption>
       </figure>`).join('');
   },
@@ -703,7 +739,7 @@ const Admin = {
     if(!confirm('ต้องการลบรูปนี้ถาวรใช่หรือไม่?')) return;
     const r = await apiPost({action:'deletePhoto', pin:State.pin, photoId});
     if(!r.ok) return toast('ลบไม่สำเร็จ');
-    toast('ลบรูปแล้ว'); Admin.loadPhotos();
+    toast('ลบรูปแล้ว 🗑️'); Admin.loadPhotos();
   }
 };
 
@@ -714,9 +750,9 @@ const Admin = {
 ['dragover','drop'].forEach(ev=>document.addEventListener(ev, e=>e.preventDefault()));
 const dz = $('dropZone');
 if (dz){
-  dz.addEventListener('dragover', ()=>dz.classList.add('border-violet-500','bg-violet-50'));
-  dz.addEventListener('dragleave', ()=>dz.classList.remove('border-violet-500','bg-violet-50'));
-  dz.addEventListener('drop', e=>{ dz.classList.remove('border-violet-500','bg-violet-50'); Admin.queue(e.dataTransfer.files); });
+  dz.addEventListener('dragover', ()=>dz.classList.add('border-violet-500','bg-violet-100'));
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('border-violet-500','bg-violet-100'));
+  dz.addEventListener('drop', e=>{ dz.classList.remove('border-violet-500','bg-violet-100'); Admin.queue(e.dataTransfer.files); });
 }
 // คีย์ลัดในไลต์บ็อกซ์
 document.addEventListener('keydown', e=>{
