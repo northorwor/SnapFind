@@ -1,775 +1,1534 @@
 <!DOCTYPE html>
-<html lang="th" class="scroll-smooth">
+<html lang="th" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>สแนปไฟน์ — หารูปตัวเองในงาน แค่เซลฟี่เดียว</title>
-<meta name="description" content="สแกน QR ถ่ายเซลฟี่ แล้วระบบจะค้นหารูปที่มีคุณอยู่ในงานให้ทันที" />
-<meta name="theme-color" content="#0B0C10" />
+<meta name="theme-color" content="#07070A" />
+<title>FaceSnap — ถ่ายเซลฟี่หนึ่งรูป ได้รูปตัวเองทั้งงาน</title>
+<meta name="description" content="สแกน QR ของงาน ถ่ายเซลฟี่ แล้วรับรูปทุกใบที่มีคุณอยู่ ประมวลผลใบหน้าในเครื่อง ไม่ส่งเซลฟี่ขึ้นเซิร์ฟเวอร์" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-  tailwind.config = { theme: { extend: { fontFamily: {
-    sans: ['"IBM Plex Sans Thai"','system-ui','sans-serif'],
-    display: ['"Bai Jamjuree"','"IBM Plex Sans Thai"','sans-serif']
-  }}}}
+tailwind.config = { corePlugins:{ preflight:true } };
 </script>
 
 <style>
-  :root{
-    --brand:#FF4D3D; --brand-2:#FF9A3C; --accent:#5EE7C8;
-    --bg:#0B0C10; --bg-2:#101218; --card:rgba(255,255,255,.055); --card-2:rgba(255,255,255,.09);
-    --ink:#F4F6FA; --muted:#98A0AE; --line:rgba(255,255,255,.12);
-    --shadow:0 24px 60px -24px rgba(0,0,0,.75);
-    --r:20px;
-  }
-  html[data-theme="light"]{
-    --bg:#F3F4F7; --bg-2:#FFFFFF; --card:rgba(255,255,255,.78); --card-2:rgba(255,255,255,.95);
-    --ink:#14161B; --muted:#5C6473; --line:rgba(16,18,24,.12);
-    --shadow:0 20px 50px -26px rgba(16,18,24,.35);
-  }
-  *{-webkit-tap-highlight-color:transparent}
-  html,body{background:var(--bg); color:var(--ink)}
-  body{font-size:16px; line-height:1.75; letter-spacing:.005em; overflow-x:hidden;
-       padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
-  h1,h2,h3{font-family:"Bai Jamjuree","IBM Plex Sans Thai",sans-serif; line-height:1.3; letter-spacing:-.015em}
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  --brand:#FF4D3D;
+  --brand2:#FF9F1C;
+  --brand-rgb:255,77,61;
 
-  /* ── ฉากหลัง: ออโรรา + เกรน ── */
-  .aurora{position:fixed;inset:-20% -10%;z-index:-2;filter:blur(90px);opacity:.55;pointer-events:none}
-  .aurora i{position:absolute;display:block;border-radius:50%;mix-blend-mode:screen}
-  html[data-theme="light"] .aurora{opacity:.4;mix-blend-mode:normal}
-  .a1{width:52vw;height:52vw;left:-8vw;top:-6vw;background:radial-gradient(circle,var(--brand),transparent 62%);animation:drift 22s ease-in-out infinite}
-  .a2{width:46vw;height:46vw;right:-6vw;top:10vh;background:radial-gradient(circle,var(--brand-2),transparent 62%);animation:drift 28s ease-in-out infinite reverse}
-  .a3{width:40vw;height:40vw;left:24vw;bottom:-12vw;background:radial-gradient(circle,var(--accent),transparent 62%);animation:drift 34s ease-in-out infinite}
-  @keyframes drift{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(6vw,4vh,0) scale(1.12)}66%{transform:translate3d(-5vw,-3vh,0) scale(.94)}}
-  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  --bg:#07070A;
+  --bg2:#0B0B10;
+  --surface:255,255,255;
+  --surface-a:.045;
+  --fg:#EDEEF2;
+  --muted:#8B909B;
+  --line:rgba(255,255,255,.085);
+  --line-strong:rgba(255,255,255,.16);
+  --shadow:0 24px 70px -20px rgba(0,0,0,.75);
+  --ring:rgba(var(--brand-rgb),.35);
 
-  /* ── พื้นผิวกระจก ── */
-  .glass{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-         backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);box-shadow:var(--shadow)}
-  .glass-soft{background:var(--card);border:1px solid var(--line);border-radius:16px;
-         backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-  .hair{position:relative}
-  .hair::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
-    background:linear-gradient(140deg,rgba(255,255,255,.35),transparent 40%,transparent 60%,rgba(255,255,255,.14));
-    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  --r-sm:12px; --r-md:18px; --r-lg:26px; --r-xl:34px;
+  --spring:cubic-bezier(.22,1.2,.36,1);
+  --smooth:cubic-bezier(.4,0,.2,1);
+}
+[data-theme="light"]{
+  --bg:#F6F6F8;
+  --bg2:#FFFFFF;
+  --surface:12,14,20;
+  --surface-a:.035;
+  --fg:#0D0F15;
+  --muted:#6A7080;
+  --line:rgba(12,14,20,.10);
+  --line-strong:rgba(12,14,20,.2);
+  --shadow:0 24px 60px -24px rgba(16,20,40,.25);
+}
 
-  .grad-text{background:linear-gradient(105deg,var(--brand),var(--brand-2) 45%,var(--accent));
-    -webkit-background-clip:text;background-clip:text;color:transparent}
-  .brand-text{color:var(--brand)}
-  .brand-bg{background:linear-gradient(120deg,var(--brand),var(--brand-2))}
+*{ -webkit-tap-highlight-color:transparent; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:'Anuphan','Space Grotesk',system-ui,-apple-system,sans-serif;
+  font-feature-settings:"liga" 1,"kern" 1;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  min-height:100dvh;
+}
+h1,h2,h3,.display{ letter-spacing:-.025em; }
+::selection{ background:rgba(var(--brand-rgb),.28); }
 
-  /* ── ปุ่ม ── */
-  .btn{position:relative;overflow:hidden;border-radius:14px;
-       transition:transform .22s cubic-bezier(.2,.9,.3,1.4),box-shadow .22s ease,border-color .2s ease,background .2s ease}
-  .btn:hover:not(:disabled){transform:translateY(-2px)}
-  .btn:active:not(:disabled){transform:translateY(0) scale(.985)}
-  .btn-primary{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;
-    box-shadow:0 10px 26px -10px var(--brand)}
-  .btn-primary:hover:not(:disabled){box-shadow:0 16px 34px -10px var(--brand)}
-  .btn-primary::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;
-    background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-18deg)}
-  .btn-primary:hover:not(:disabled)::after{animation:sheen .8s ease}
-  @keyframes sheen{to{left:140%}}
-  .btn-ghost{background:var(--card);border:1px solid var(--line);color:var(--ink);backdrop-filter:blur(10px)}
-  .btn-ghost:hover{border-color:var(--brand)}
-  .fld{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.85rem 1.1rem;color:var(--ink);
-       transition:border-color .2s,box-shadow .2s}
-  .fld::placeholder{color:var(--muted)}
-  .fld:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 22%,transparent)}
-  :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-  .chip{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem .9rem;border-radius:999px;
-        background:var(--card);border:1px solid var(--line);font-size:.8rem;color:var(--muted)}
-  .pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:pd 2.2s infinite}
-  @keyframes pd{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 70%,transparent)}70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
+/* Scrollbar */
+::-webkit-scrollbar{ width:9px; height:9px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:99px; }
+::-webkit-scrollbar-thumb:hover{ background:var(--brand); }
 
-  /* ── การ์ดเอียงตามเมาส์ ── */
-  .tilt{transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
-  .tilt:hover{transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px)}
+/* ============================================================
+   AMBIENT BACKGROUND (aurora mesh + grain)
+   ============================================================ */
+#aurora{ position:fixed; inset:-20%; z-index:-2; pointer-events:none; filter:blur(90px); opacity:.55; }
+#aurora i{ position:absolute; display:block; border-radius:50%; mix-blend-mode:screen; }
+[data-theme="light"] #aurora{ opacity:.35; filter:blur(110px); }
+[data-theme="light"] #aurora i{ mix-blend-mode:multiply; }
+.a1{ width:46vw; height:46vw; left:-6%; top:2%;  background:radial-gradient(circle,var(--brand),transparent 66%); animation:drift1 22s var(--smooth) infinite alternate; }
+.a2{ width:40vw; height:40vw; right:-4%; top:22%; background:radial-gradient(circle,var(--brand2),transparent 66%); animation:drift2 28s var(--smooth) infinite alternate; }
+.a3{ width:52vw; height:52vw; left:26%; bottom:-14%; background:radial-gradient(circle,#5B7CFF,transparent 68%); animation:drift3 34s var(--smooth) infinite alternate; }
+@keyframes drift1{ to{ transform:translate3d(12vw,8vh,0) scale(1.15) } }
+@keyframes drift2{ to{ transform:translate3d(-14vw,12vh,0) scale(.88) } }
+@keyframes drift3{ to{ transform:translate3d(8vw,-10vh,0) scale(1.2) } }
 
-  /* ── โครงตาข่ายภาพ ── */
-  .masonry{column-gap:16px;columns:1}
-  @media(min-width:480px){.masonry{columns:2}}
-  @media(min-width:768px){.masonry{columns:3}}
-  @media(min-width:1280px){.masonry{columns:4}}
-  .masonry>*{break-inside:avoid;margin-bottom:16px}
-  .ph{border-radius:18px;overflow:hidden;border:1px solid var(--line);position:relative;background:var(--bg-2);
-      transition:transform .3s cubic-bezier(.2,.9,.3,1.3),box-shadow .3s}
-  .ph:hover{transform:translateY(-5px) scale(1.012);box-shadow:0 22px 46px -22px rgba(0,0,0,.7)}
-  .ph img{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-  .ph:hover img{transform:scale(1.06)}
+#grain{
+  position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.16;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
-  /* ── ช่องมองภาพ ── */
-  .viewport{position:relative;border-radius:22px;overflow:hidden;background:#07080B;
-    box-shadow:inset 0 0 0 1px var(--line),inset 0 0 60px rgba(0,0,0,.6)}
-  .brk{position:absolute;inset:14%;border-radius:16px}
-  .brk span{position:absolute;width:26px;height:26px;border:2px solid var(--accent);opacity:.9}
-  .brk span:nth-child(1){top:0;left:0;border-right:0;border-bottom:0;border-radius:10px 0 0 0;animation:bk 3s ease-in-out infinite}
-  .brk span:nth-child(2){top:0;right:0;border-left:0;border-bottom:0;border-radius:0 10px 0 0;animation:bk 3s ease-in-out infinite .1s}
-  .brk span:nth-child(3){bottom:0;left:0;border-right:0;border-top:0;border-radius:0 0 0 10px;animation:bk 3s ease-in-out infinite .2s}
-  .brk span:nth-child(4){bottom:0;right:0;border-left:0;border-top:0;border-radius:0 0 10px 0;animation:bk 3s ease-in-out infinite .3s}
-  @keyframes bk{0%,100%{transform:translate(0,0);opacity:.55}50%{transform:translate(-5px,-5px);opacity:1}}
-  .brk span:nth-child(2),.brk span:nth-child(3){animation-name:bk2}
-  @keyframes bk2{0%,100%{transform:translate(0,0);opacity:.55}50%{transform:translate(5px,-5px);opacity:1}}
-  .scan-line{position:absolute;left:6%;right:6%;height:2px;border-radius:2px;
-    background:linear-gradient(90deg,transparent,var(--accent),transparent);
-    box-shadow:0 0 22px var(--accent);animation:sc 2.4s ease-in-out infinite}
-  @keyframes sc{0%,100%{top:8%}50%{top:92%}}
+/* ============================================================
+   SURFACES
+   ============================================================ */
+.glass{
+  background:rgba(var(--surface),var(--surface-a));
+  backdrop-filter:blur(22px) saturate(160%);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid var(--line);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+}
+[data-theme="light"] .glass{ background:rgba(255,255,255,.72); box-shadow:var(--shadow), inset 0 1px 0 #fff; }
+.glass-soft{
+  background:rgba(var(--surface),.035);
+  border:1px solid var(--line);
+  border-radius:var(--r-md);
+}
+.hair{ position:relative; }
+.hair::after{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.1),transparent 34%,transparent 66%,rgba(255,255,255,.05));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; padding:1px;
+}
 
-  /* ── สเกเลตัน / เผยตอนเลื่อน ── */
-  .shimmer{border-radius:18px;background:linear-gradient(90deg,var(--card) 25%,var(--card-2) 50%,var(--card) 75%);
-    background-size:200% 100%;animation:sh 1.5s linear infinite}
-  @keyframes sh{to{background-position:-200% 0}}
-  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.9,.3,1)}
-  .reveal.in{opacity:1;transform:none}
+/* Spotlight hover card */
+.spot{ position:relative; overflow:hidden; transition:transform .5s var(--spring), border-color .3s; }
+.spot::before{
+  content:''; position:absolute; inset:0; opacity:0; transition:opacity .35s; pointer-events:none;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%), rgba(var(--brand-rgb),.14), transparent 62%);
+}
+.spot:hover::before{ opacity:1; }
+.spot:hover{ transform:translateY(-4px); border-color:var(--line-strong); }
 
-  .dock{position:fixed;left:50%;transform:translateX(-50%);z-index:45;
-        bottom:calc(16px + env(safe-area-inset-bottom,0px))}
-  ::-webkit-scrollbar{width:9px}::-webkit-scrollbar-track{background:transparent}
-  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
-  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+/* ============================================================
+   BUTTONS / FIELDS
+   ============================================================ */
+.btn{
+  position:relative; overflow:hidden; border-radius:999px; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  transition:transform .35s var(--spring), box-shadow .3s, background .25s, opacity .2s, border-color .25s;
+  white-space:nowrap; border:1px solid transparent; font-family:inherit;
+}
+.btn:active{ transform:scale(.965); }
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.btn-primary{
+  background:linear-gradient(135deg,var(--brand),var(--brand2));
+  color:#fff; box-shadow:0 10px 30px -10px rgba(var(--brand-rgb),.75);
+}
+.btn-primary:hover{ box-shadow:0 16px 40px -10px rgba(var(--brand-rgb),.9); transform:translateY(-2px); }
+.btn-ghost{
+  background:rgba(var(--surface),.05); color:var(--fg); border-color:var(--line);
+  backdrop-filter:blur(12px);
+}
+.btn-ghost:hover{ background:rgba(var(--surface),.1); border-color:var(--line-strong); transform:translateY(-2px); }
+.btn-danger{ background:rgba(255,77,77,.12); color:#FF7A6B; border-color:rgba(255,77,77,.3); }
+.btn-danger:hover{ background:rgba(255,77,77,.2); }
+.btn[disabled]{ opacity:.35; cursor:not-allowed; transform:none!important; box-shadow:none; }
+
+.ripple{ position:absolute; border-radius:50%; background:rgba(255,255,255,.4); transform:scale(0); animation:rip .6s var(--smooth); pointer-events:none; }
+@keyframes rip{ to{ transform:scale(4); opacity:0 } }
+
+.fld{
+  width:100%; padding:.95rem 1.15rem; border-radius:var(--r-md);
+  background:rgba(var(--surface),.05); border:1px solid var(--line);
+  color:var(--fg); font-family:inherit; font-size:.95rem;
+  transition:border-color .25s, box-shadow .25s, background .25s;
+}
+.fld::placeholder{ color:var(--muted); }
+.fld:focus{ outline:none; border-color:rgba(var(--brand-rgb),.6); box-shadow:0 0 0 4px var(--ring); background:rgba(var(--surface),.08); }
+select.fld{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238B909B' stroke-width='2'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 1.1rem center; padding-right:2.6rem; }
+
+.chip{
+  display:inline-flex; align-items:center; gap:.55rem; padding:.45rem 1rem;
+  border-radius:999px; font-size:.78rem; font-weight:600;
+  background:rgba(var(--surface),.055); border:1px solid var(--line); color:var(--muted);
+  backdrop-filter:blur(12px);
+}
+.pulse-dot{ width:7px; height:7px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 0 rgba(var(--brand-rgb),.7); animation:pulse 2s infinite; }
+@keyframes pulse{ 70%{ box-shadow:0 0 0 9px rgba(var(--brand-rgb),0) } 100%{ box-shadow:0 0 0 0 rgba(var(--brand-rgb),0) } }
+
+.grad-text{
+  background:linear-gradient(110deg,var(--brand) 10%,var(--brand2) 45%,#7C9BFF 90%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  background-size:220% auto; animation:shimmer 6s linear infinite;
+}
+@keyframes shimmer{ to{ background-position:220% center } }
+.brand-text{ color:var(--brand); }
+.brand-bg{ background:linear-gradient(135deg,var(--brand),var(--brand2)); }
+
+/* ============================================================
+   VIEWPORT / SCANNER FX
+   ============================================================ */
+.viewport{
+  position:relative; overflow:hidden; border-radius:var(--r-lg);
+  background:linear-gradient(160deg,rgba(var(--surface),.07),rgba(var(--surface),.02));
+  border:1px solid var(--line);
+}
+.brk span{ position:absolute; width:30px; height:30px; border:2px solid var(--brand); opacity:.85; }
+.brk span:nth-child(1){ top:14px; left:14px; border-right:0; border-bottom:0; border-radius:10px 0 0 0; }
+.brk span:nth-child(2){ top:14px; right:14px; border-left:0; border-bottom:0; border-radius:0 10px 0 0; }
+.brk span:nth-child(3){ bottom:14px; left:14px; border-right:0; border-top:0; border-radius:0 0 0 10px; }
+.brk span:nth-child(4){ bottom:14px; right:14px; border-left:0; border-top:0; border-radius:0 0 10px 0; }
+.scan-line{
+  position:absolute; left:6%; right:6%; height:2px; border-radius:99px;
+  background:linear-gradient(90deg,transparent,var(--brand),transparent);
+  box-shadow:0 0 22px 3px rgba(var(--brand-rgb),.7);
+  animation:scan 2.6s var(--smooth) infinite;
+}
+@keyframes scan{ 0%{ top:10% } 50%{ top:88% } 100%{ top:10% } }
+
+.tilt{ transition:transform .4s var(--spring); transform-style:preserve-3d; }
+
+/* ============================================================
+   GALLERY
+   ============================================================ */
+.masonry{ column-gap:14px; }
+@media(min-width:0px){ .masonry{ columns:2 } }
+@media(min-width:720px){ .masonry{ columns:3 } }
+@media(min-width:1100px){ .masonry{ columns:4 } }
+.masonry.dense{ columns:3 } @media(min-width:720px){ .masonry.dense{ columns:5 } } @media(min-width:1100px){ .masonry.dense{ columns:6 } }
+.masonry.large{ columns:1 } @media(min-width:720px){ .masonry.large{ columns:2 } } @media(min-width:1100px){ .masonry.large{ columns:3 } }
+
+.tile{
+  break-inside:avoid; margin-bottom:14px; position:relative; overflow:hidden;
+  border-radius:var(--r-md); border:1px solid var(--line); cursor:zoom-in;
+  background:rgba(var(--surface),.05);
+  transition:transform .45s var(--spring), border-color .3s, box-shadow .3s;
+  animation:tileIn .5s var(--spring) backwards;
+}
+@keyframes tileIn{ from{ opacity:0; transform:translateY(16px) scale(.97) } }
+.tile:hover{ transform:translateY(-5px) scale(1.012); border-color:var(--line-strong); box-shadow:0 20px 44px -18px rgba(0,0,0,.7); }
+.tile img{ width:100%; display:block; transition:transform .7s var(--spring), filter .4s; }
+.tile:hover img{ transform:scale(1.06); }
+.tile.sel{ border-color:var(--brand); box-shadow:0 0 0 2px rgba(var(--brand-rgb),.55); }
+.tile .veil{
+  position:absolute; inset:0; opacity:0; transition:opacity .3s;
+  background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,.1) 45%,transparent);
+}
+.tile:hover .veil, .tile.sel .veil{ opacity:1; }
+.tile .tools{ position:absolute; inset:auto 10px 10px 10px; display:flex; gap:6px; align-items:center; transform:translateY(10px); opacity:0; transition:.3s var(--spring); }
+.tile:hover .tools{ transform:none; opacity:1; }
+.tbtn{ width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:rgba(0,0,0,.55); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.16); color:#fff; transition:.25s; }
+.tbtn:hover{ background:var(--brand); transform:translateY(-2px); }
+.badge{
+  position:absolute; top:10px; left:10px; padding:.25rem .6rem; border-radius:999px;
+  font-size:.7rem; font-weight:700; letter-spacing:.02em;
+  background:rgba(0,0,0,.55); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.18); color:#fff;
+}
+.badge.hi{ background:linear-gradient(135deg,var(--brand),var(--brand2)); border-color:transparent; }
+.check{
+  position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:9px;
+  border:1.5px solid rgba(255,255,255,.55); background:rgba(0,0,0,.4); backdrop-filter:blur(8px);
+  display:grid; place-items:center; color:transparent; font-size:14px; transition:.25s var(--spring);
+  opacity:0;
+}
+.tile:hover .check,.tile.sel .check{ opacity:1; }
+.tile.sel .check{ background:var(--brand); border-color:var(--brand); color:#fff; transform:scale(1.08); }
+
+.skel{ break-inside:avoid; margin-bottom:14px; border-radius:var(--r-md); background:linear-gradient(100deg,rgba(var(--surface),.05) 30%,rgba(var(--surface),.12) 50%,rgba(var(--surface),.05) 70%); background-size:220% 100%; animation:sk 1.4s linear infinite; }
+@keyframes sk{ to{ background-position:-220% 0 } }
+
+/* ============================================================
+   LIGHTBOX
+   ============================================================ */
+#lightbox{ position:fixed; inset:0; z-index:90; display:none; background:rgba(4,4,7,.93); backdrop-filter:blur(26px); }
+#lightbox.on{ display:flex; flex-direction:column; animation:fade .3s var(--smooth); }
+@keyframes fade{ from{ opacity:0 } }
+#lbImg{ max-width:100%; max-height:100%; object-fit:contain; border-radius:14px; transition:transform .45s var(--spring); animation:pop .4s var(--spring); }
+@keyframes pop{ from{ opacity:0; transform:scale(.94) } }
+#lbImg.zoom{ transform:scale(2); cursor:zoom-out; }
+.lbnav{ width:50px; height:50px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); color:#fff; backdrop-filter:blur(12px); transition:.3s var(--spring); }
+.lbnav:hover{ background:var(--brand); transform:scale(1.1); }
+.film{ display:flex; gap:8px; overflow-x:auto; padding:12px 16px; scrollbar-width:none; }
+.film::-webkit-scrollbar{ display:none }
+.film img{ height:54px; width:54px; object-fit:cover; border-radius:10px; opacity:.4; cursor:pointer; border:2px solid transparent; transition:.25s; flex:0 0 auto; }
+.film img.act{ opacity:1; border-color:var(--brand); transform:translateY(-3px); }
+
+/* ============================================================
+   TOASTS / DOCK / MISC
+   ============================================================ */
+#toasts{ position:fixed; z-index:120; right:16px; bottom:16px; display:flex; flex-direction:column; gap:10px; max-width:calc(100vw - 32px); }
+.toast{
+  display:flex; align-items:flex-start; gap:.7rem; padding:.9rem 1.1rem; border-radius:16px; min-width:250px;
+  background:rgba(18,18,24,.9); border:1px solid var(--line-strong); color:#EDEEF2;
+  backdrop-filter:blur(20px); box-shadow:0 18px 44px -14px rgba(0,0,0,.7);
+  animation:toastIn .45s var(--spring); font-size:.88rem;
+}
+[data-theme="light"] .toast{ background:rgba(255,255,255,.95); color:#0D0F15; }
+.toast.out{ animation:toastOut .3s var(--smooth) forwards; }
+@keyframes toastIn{ from{ opacity:0; transform:translateX(50px) scale(.94) } }
+@keyframes toastOut{ to{ opacity:0; transform:translateX(50px) scale(.94) } }
+
+.dock{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:60; }
+
+#bar{ position:fixed; top:0; left:0; height:2px; z-index:130; background:linear-gradient(90deg,var(--brand),var(--brand2)); width:0; transition:width .1s linear; }
+
+.reveal{ opacity:0; transform:translateY(26px); transition:opacity .8s var(--smooth), transform .8s var(--spring); }
+.reveal.in{ opacity:1; transform:none; }
+
+/* Command palette */
+#cmdk{ position:fixed; inset:0; z-index:110; display:none; background:rgba(4,4,7,.6); backdrop-filter:blur(8px); }
+#cmdk.on{ display:block; animation:fade .2s }
+.cmd-row{ display:flex; align-items:center; gap:.85rem; padding:.85rem 1.1rem; border-radius:14px; cursor:pointer; transition:.2s; }
+.cmd-row:hover,.cmd-row.act{ background:rgba(var(--brand-rgb),.14); }
+
+/* Stats */
+.stat{ padding:1.3rem 1.4rem; border-radius:var(--r-md); border:1px solid var(--line); background:rgba(var(--surface),.04); }
+.stat b{ font-size:1.9rem; font-weight:700; font-family:'Space Grotesk',sans-serif; letter-spacing:-.03em; display:block; }
+
+/* Upload rows */
+.uprow{ display:flex; align-items:center; gap:.75rem; padding:.6rem .8rem; border-radius:12px; background:rgba(var(--surface),.04); font-size:.82rem; }
+.udot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+
+.offline{ position:fixed; top:0; left:0; right:0; z-index:125; padding:.5rem; text-align:center; font-size:.82rem; font-weight:600; background:#FF6B6B; color:#fff; transform:translateY(-100%); transition:transform .4s var(--spring); }
+.offline.on{ transform:none; }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+}
 </style>
 </head>
 
-<body class="font-sans antialiased min-h-screen">
-<div class="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
-<div class="grain"></div>
+<body>
+<div id="bar"></div>
+<div id="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+<div id="grain"></div>
+<div id="offlineBar" class="offline">⚠️ ออฟไลน์อยู่ — บางฟังก์ชันจะใช้ไม่ได้ชั่วคราว</div>
 
-<header class="sticky z-40 border-b" style="top:env(safe-area-inset-top,0px);border-color:var(--line);background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(16px)">
-  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-    <a href="?" class="flex items-center gap-2.5 font-display font-bold text-lg">
-      <span class="w-9 h-9 brand-bg text-white grid place-items-center rounded-xl text-lg shadow-lg">◎</span>
-      <span class="grad-text">สแนปไฟน์</span>
-    </a>
+<!-- ================= HEADER ================= -->
+<header class="sticky top-0 z-50 backdrop-blur-xl" style="background:linear-gradient(to bottom,rgba(7,7,10,.72),transparent);border-bottom:1px solid var(--line)">
+  <nav class="max-w-[1240px] mx-auto px-5 h-[68px] flex items-center justify-between gap-4">
+    <button onclick="Router.go('landing')" class="flex items-center gap-2.5 font-bold text-[1.05rem]">
+      <span class="w-9 h-9 rounded-xl brand-bg grid place-items-center text-white text-sm font-black shadow-lg">FS</span>
+      <span class="hidden sm:block">Face<span class="grad-text">Snap</span></span>
+    </button>
+
     <div class="flex items-center gap-2">
-      <img id="sponsorLogo" class="h-8 hidden object-contain" alt="ผู้สนับสนุน" />
-      <button onclick="Theme.toggle()" id="themeBtn" aria-label="สลับธีม" class="btn btn-ghost w-10 h-10 grid place-items-center text-base">☾</button>
-      <button onclick="Router.go('admin')" class="btn btn-ghost text-sm px-4 py-2 font-medium">สำหรับผู้จัดงาน</button>
+      <button onclick="Cmd.open()" class="btn btn-ghost h-10 px-3.5 text-[.8rem] font-semibold hidden md:flex">
+        <span style="color:var(--muted)">ค้นหา / คำสั่ง</span>
+        <kbd class="ml-1 px-1.5 py-0.5 rounded-md text-[.65rem]" style="background:rgba(var(--surface),.1);border:1px solid var(--line)">⌘K</kbd>
+      </button>
+      <button onclick="Theme.toggle()" id="themeBtn" class="btn btn-ghost w-10 h-10" aria-label="สลับธีม">🌙</button>
+      <button onclick="Router.go('admin')" class="btn btn-ghost h-10 px-4 text-sm font-semibold">ผู้จัดงาน</button>
     </div>
-  </div>
+  </nav>
 </header>
 
-<main class="max-w-6xl mx-auto px-4 py-8 pb-28">
+<main class="max-w-[1240px] mx-auto px-5 pb-32">
 
-  <!-- หน้าแรก -->
-  <section id="view-landing" class="hidden">
-    <div class="grid lg:grid-cols-[1.05fr,.95fr] gap-12 items-center py-10 md:py-16">
-      <div class="reveal">
-        <span class="chip"><span class="pulse-dot"></span> ประมวลผลใบหน้าในเครื่องคุณ ไม่ส่งเซลฟี่ขึ้นเซิร์ฟเวอร์</span>
-        <h1 class="mt-6 text-4xl md:text-[3.6rem] font-bold" style="line-height:1.15">
-          ถ่ายเซลฟี่หนึ่งรูป<br /><span class="grad-text">ได้รูปตัวเองทั้งงาน</span>
-        </h1>
-        <p class="mt-5 max-w-[52ch]" style="color:var(--muted)">
-          สแกน QR ของงาน ถ่ายเซลฟี่ แล้วระบบจะดึงทุกภาพที่มีคุณอยู่มาให้ พร้อมดาวน์โหลดไฟล์ความละเอียดเต็ม
-        </p>
-        <form onsubmit="event.preventDefault();Router.openEvent(document.getElementById('joinCode').value.trim())"
-              class="mt-8 flex flex-col sm:flex-row gap-2.5 max-w-lg">
-          <input id="joinCode" placeholder="รหัสงาน เช่น gala-2f7k" class="fld flex-1 font-medium" />
-          <button class="btn btn-primary px-8 py-3.5 font-semibold">เข้าสู่งาน</button>
-        </form>
-      </div>
+<!-- ================= LANDING ================= -->
+<section id="view-landing" class="hidden">
+  <div class="grid lg:grid-cols-[1.05fr,.95fr] gap-12 items-center py-10 md:py-16">
+    <div class="reveal">
+      <span class="chip"><span class="pulse-dot"></span> ประมวลผลใบหน้าในเครื่องคุณ · ไม่ส่งเซลฟี่ขึ้นเซิร์ฟเวอร์</span>
+      <h1 class="mt-6 text-4xl md:text-[3.6rem] font-bold" style="line-height:1.14">
+        ถ่ายเซลฟี่หนึ่งรูป<br /><span class="grad-text">ได้รูปตัวเองทั้งงาน</span>
+      </h1>
+      <p class="mt-5 max-w-[52ch] text-[1.02rem]" style="color:var(--muted)">
+        สแกน QR ของงาน ถ่ายเซลฟี่ แล้วระบบจะดึงทุกภาพที่มีคุณอยู่มาให้ พร้อมดาวน์โหลดไฟล์ความละเอียดเต็ม
+      </p>
 
-      <div class="grid grid-cols-3 gap-3 reveal">
-        <div class="aspect-[3/4] glass rounded-2xl"></div>
-        <div class="aspect-[3/4] viewport grid place-items-center text-4xl tilt" id="heroTilt">
-          🙂<div class="brk"><span></span><span></span><span></span><span></span></div><div class="scan-line"></div>
-        </div>
-        <div class="aspect-[3/4] glass rounded-2xl"></div>
-        <div class="aspect-[3/4] glass rounded-2xl"></div>
-        <div class="aspect-[3/4] glass rounded-2xl"></div>
-        <div class="aspect-[3/4] glass rounded-2xl"></div>
+      <form onsubmit="event.preventDefault();Router.openEvent(joinCode.value.trim())" class="mt-8 flex flex-col sm:flex-row gap-2.5 max-w-lg">
+        <input id="joinCode" placeholder="รหัสงาน เช่น gala-2f7k" class="fld flex-1 font-medium" autocomplete="off" />
+        <button class="btn btn-primary px-8 py-3.5 font-semibold">เข้าสู่งาน →</button>
+      </form>
+
+      <div id="recentWrap" class="hidden mt-6">
+        <p class="text-xs font-semibold mb-2.5" style="color:var(--muted)">เข้าล่าสุด</p>
+        <div id="recentList" class="flex flex-wrap gap-2"></div>
       </div>
     </div>
 
-    <div class="grid sm:grid-cols-3 gap-4 mt-6">
-      <div class="glass hair p-7 reveal">
-        <div class="text-2xl">🔒</div>
-        <h3 class="font-semibold mt-3">เซลฟี่ไม่ออกจากเครื่อง</h3>
-        <p class="text-sm mt-2" style="color:var(--muted)">ใบหน้าถูกประมวลผลในเบราว์เซอร์ ระบบเก็บเฉพาะรูปของงาน</p>
+    <div class="grid grid-cols-3 gap-3 reveal" id="heroGrid">
+      <div class="aspect-[3/4] glass"></div>
+      <div class="aspect-[3/4] viewport grid place-items-center text-4xl tilt" id="heroTilt">
+        <span style="filter:drop-shadow(0 0 20px rgba(var(--brand-rgb),.6))">🙂</span>
+        <div class="brk"><span></span><span></span><span></span><span></span></div><div class="scan-line"></div>
       </div>
-      <div class="glass hair p-7 reveal">
-        <div class="text-2xl">⚡</div>
-        <h3 class="font-semibold mt-3">รู้ผลใน 2–3 วินาที</h3>
-        <p class="text-sm mt-2" style="color:var(--muted)">ไม่ต้องรอทีมงานคัดรูปแล้วส่งให้ทีหลัง</p>
-      </div>
-      <div class="glass hair p-7 reveal">
-        <div class="text-2xl">📦</div>
-        <h3 class="font-semibold mt-3">ดาวน์โหลดรวดเดียว</h3>
-        <p class="text-sm mt-2" style="color:var(--muted)">รวมรูปที่เจอทั้งหมดเป็นไฟล์ ZIP ในคลิกเดียว</p>
-      </div>
+      <div class="aspect-[3/4] glass"></div>
+      <div class="aspect-[3/4] glass"></div>
+      <div class="aspect-[3/4] glass"></div>
+      <div class="aspect-[3/4] glass"></div>
     </div>
-  </section>
+  </div>
 
-  <!-- หน้างาน -->
-  <section id="view-event" class="hidden">
-    <div class="glass hair overflow-hidden">
-      <div id="eventCover" class="h-40 md:h-56 brand-bg bg-cover bg-center relative">
-        <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.65),transparent)"></div>
-      </div>
-      <div class="p-6 md:p-7 flex flex-wrap items-end justify-between gap-5">
-        <div class="min-w-[260px] flex-1">
+  <div class="grid sm:grid-cols-3 gap-4 mt-6">
+    <div class="glass hair spot p-7 reveal">
+      <div class="text-2xl">🔒</div>
+      <h3 class="font-semibold mt-3">เซลฟี่ไม่ออกจากเครื่อง</h3>
+      <p class="text-sm mt-2" style="color:var(--muted)">ใบหน้าถูกประมวลผลในเบราว์เซอร์ ระบบเก็บเฉพาะรูปของงาน</p>
+    </div>
+    <div class="glass hair spot p-7 reveal">
+      <div class="text-2xl">⚡</div>
+      <h3 class="font-semibold mt-3">รู้ผลใน 2–3 วินาที</h3>
+      <p class="text-sm mt-2" style="color:var(--muted)">ไม่ต้องรอทีมงานคัดรูปแล้วส่งให้ทีหลัง</p>
+    </div>
+    <div class="glass hair spot p-7 reveal">
+      <div class="text-2xl">📦</div>
+      <h3 class="font-semibold mt-3">ดาวน์โหลดรวดเดียว</h3>
+      <p class="text-sm mt-2" style="color:var(--muted)">รวมรูปที่เจอทั้งหมดเป็นไฟล์ ZIP ในคลิกเดียว</p>
+    </div>
+  </div>
+
+  <div class="glass hair p-8 md:p-10 mt-4 reveal">
+    <h2 class="font-bold text-xl">ใช้งานยังไง</h2>
+    <div class="grid md:grid-cols-4 gap-6 mt-7">
+      <div><div class="text-xs font-black brand-text">01</div><p class="font-semibold mt-2">สแกน QR ของงาน</p><p class="text-sm mt-1" style="color:var(--muted)">หรือกรอกรหัสงานเอง</p></div>
+      <div><div class="text-xs font-black brand-text">02</div><p class="font-semibold mt-2">ถ่ายเซลฟี่</p><p class="text-sm mt-1" style="color:var(--muted)">อยู่ในที่แสงพอ หน้าตรง</p></div>
+      <div><div class="text-xs font-black brand-text">03</div><p class="font-semibold mt-2">AI จับคู่ในเครื่อง</p><p class="text-sm mt-1" style="color:var(--muted)">เทียบใบหน้ากับรูปทั้งงาน</p></div>
+      <div><div class="text-xs font-black brand-text">04</div><p class="font-semibold mt-2">โหลดรูปของคุณ</p><p class="text-sm mt-1" style="color:var(--muted)">ทีละรูป หรือ ZIP ทั้งหมด</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= EVENT ================= -->
+<section id="view-event" class="hidden">
+  <div class="glass hair overflow-hidden">
+    <div id="eventCover" class="h-40 md:h-56 brand-bg bg-cover bg-center relative">
+      <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.7),transparent)"></div>
+      <img id="sponsorLogo" class="hidden absolute top-5 right-5 h-10 object-contain drop-shadow-lg" alt="sponsor" />
+    </div>
+    <div class="p-6 md:p-7 flex flex-wrap items-end justify-between gap-5">
+      <div class="min-w-[260px] flex-1">
+        <div class="flex items-center gap-2 flex-wrap">
           <h1 id="eventName" class="text-2xl md:text-3xl font-bold">ชื่องาน</h1>
-          <p id="eventMeta" class="text-sm mt-2" style="color:var(--muted)"></p>
+          <button onclick="Attendee.shareEvent()" class="btn btn-ghost h-8 px-3 text-xs font-semibold">แชร์งาน</button>
         </div>
-        <div class="flex gap-2 w-full sm:w-auto">
-          <button onclick="Attendee.startScan()" class="btn btn-primary flex-1 sm:flex-none px-6 py-3.5 font-semibold">ค้นหารูปของฉัน</button>
-          <button onclick="Attendee.showAll()" class="btn btn-ghost px-5 py-3.5 font-semibold">ดูทั้งหมด</button>
-        </div>
+        <p id="eventMeta" class="text-sm mt-2" style="color:var(--muted)"></p>
       </div>
-    </div>
-
-    <div id="scanPanel" class="hidden mt-6 glass hair p-6 md:p-8">
-      <div class="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h2 class="font-bold text-xl">ถ่ายเซลฟี่เพื่อค้นหา</h2>
-          <p class="text-sm mt-1" style="color:var(--muted)">จัดใบหน้าให้อยู่ในกรอบ อยู่ในที่แสงพอ และถอดแว่นกันแดด</p>
-        </div>
-        <button onclick="Attendee.closeScan()" aria-label="ปิด" class="btn btn-ghost w-10 h-10 grid place-items-center">✕</button>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-7">
-        <div class="viewport aspect-[4/3] grid place-items-center">
-          <video id="cam" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
-          <img id="selfiePreview" class="w-full h-full object-cover hidden" alt="เซลฟี่ของคุณ" />
-          <div id="scanOverlay" class="hidden absolute inset-0">
-            <div class="brk"><span></span><span></span><span></span><span></span></div><div class="scan-line"></div>
-          </div>
-          <p id="camHint" class="text-sm" style="color:var(--muted)">แตะ “เปิดกล้อง” เพื่อเริ่ม</p>
-        </div>
-
-        <div class="flex flex-col gap-3 justify-center">
-          <button onclick="Attendee.openCamera()" class="btn btn-ghost px-6 py-3.5 font-semibold">เปิดกล้อง</button>
-          <button onclick="Attendee.capture()" id="btnCapture" disabled
-            class="btn btn-primary px-6 py-3.5 font-semibold disabled:opacity-40 disabled:cursor-not-allowed">ถ่ายภาพแล้วค้นหา</button>
-          <label class="btn btn-ghost px-6 py-3.5 font-semibold text-center cursor-pointer">
-            อัปโหลดรูปหน้าตรงแทน
-            <input type="file" accept="image/*" class="hidden" onchange="Attendee.fromFile(this.files[0])" />
-          </label>
-
-          <div class="mt-2 p-5 glass-soft">
-            <label for="thr" class="text-sm flex justify-between font-semibold mb-3">
-              <span>ความเข้มงวดในการจับคู่</span><span id="thrVal" class="brand-text">0.48</span>
-            </label>
-            <input id="thr" type="range" min="0.35" max="0.65" step="0.01" value="0.48"
-                   oninput="document.getElementById('thrVal').textContent=this.value"
-                   class="w-full h-1.5 rounded-full appearance-none cursor-pointer" style="accent-color:var(--brand);background:var(--line)" />
-            <p class="text-xs mt-2" style="color:var(--muted)">ค่าน้อย = เข้มงวดขึ้น ได้รูปน้อยลงแต่แม่นกว่า</p>
-          </div>
-          <p id="scanStatus" role="status" class="text-sm font-semibold brand-text min-h-[1.5rem]"></p>
-        </div>
-      </div>
-    </div>
-
-    <div id="resultBar" class="hidden mt-8 flex flex-wrap items-center justify-between gap-3 pb-4 border-b" style="border-color:var(--line)">
-      <h2 id="resultTitle" class="font-bold text-lg"></h2>
       <div class="flex gap-2 w-full sm:w-auto">
+        <button onclick="Attendee.startScan()" class="btn btn-primary flex-1 sm:flex-none px-6 py-3.5 font-semibold">ค้นหารูปของฉัน</button>
+        <button onclick="Attendee.showAll()" class="btn btn-ghost px-5 py-3.5 font-semibold">ดูทั้งหมด</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="savedFaceBar" class="hidden mt-4 glass-soft p-4 flex items-center justify-between gap-3 flex-wrap">
+    <p class="text-sm" style="color:var(--muted)">🧠 เราจำใบหน้าของคุณไว้ในเครื่องนี้ ใช้ค้นหาทันทีได้เลย</p>
+    <div class="flex gap-2">
+      <button onclick="Attendee.searchWithSaved()" class="btn btn-primary px-5 py-2.5 text-sm font-semibold">ค้นหาด้วยใบหน้าที่บันทึกไว้</button>
+      <button onclick="Attendee.forgetFace()" class="btn btn-ghost px-4 py-2.5 text-sm font-semibold">ลืมซะ</button>
+    </div>
+  </div>
+
+  <!-- Scan panel -->
+  <div id="scanPanel" class="hidden mt-6 glass hair p-6 md:p-8">
+    <div class="flex items-start justify-between gap-4 mb-6">
+      <div>
+        <h2 class="font-bold text-xl">ถ่ายเซลฟี่เพื่อค้นหา</h2>
+        <p class="text-sm mt-1" style="color:var(--muted)">จัดใบหน้าให้อยู่ในกรอบ อยู่ในที่แสงพอ และถอดแว่นกันแดด</p>
+      </div>
+      <button onclick="Attendee.closeScan()" aria-label="ปิด" class="btn btn-ghost w-10 h-10">✕</button>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-7">
+      <div class="viewport aspect-[4/3] grid place-items-center">
+        <video id="cam" autoplay playsinline muted class="w-full h-full object-cover hidden" style="transform:scaleX(-1)"></video>
+        <img id="selfiePreview" class="w-full h-full object-cover hidden" alt="เซลฟี่ของคุณ" />
+        <div id="scanOverlay" class="hidden absolute inset-0 pointer-events-none">
+          <div class="brk"><span></span><span></span><span></span><span></span></div><div class="scan-line"></div>
+        </div>
+        <div id="liveHud" class="hidden absolute bottom-3 left-3 right-3">
+          <div class="chip w-full justify-center" style="background:rgba(0,0,0,.6);color:#fff"><span id="liveTxt">กำลังหาใบหน้า…</span></div>
+        </div>
+        <p id="camHint" class="text-sm px-6 text-center" style="color:var(--muted)">แตะ "เปิดกล้อง" เพื่อเริ่ม</p>
+      </div>
+
+      <div class="flex flex-col gap-3 justify-center">
+        <div class="flex gap-2">
+          <button onclick="Attendee.openCamera()" class="btn btn-ghost flex-1 px-6 py-3.5 font-semibold">เปิดกล้อง</button>
+          <button onclick="Attendee.flip()" id="btnFlip" class="btn btn-ghost w-14 py-3.5" title="สลับกล้อง">🔄</button>
+        </div>
+        <button onclick="Attendee.capture()" id="btnCapture" disabled class="btn btn-primary px-6 py-3.5 font-semibold">ถ่ายภาพแล้วค้นหา</button>
+        <label class="btn btn-ghost px-6 py-3.5 font-semibold text-center cursor-pointer">
+          อัปโหลดรูปหน้าตรงแทน
+          <input type="file" accept="image/*" class="hidden" onchange="Attendee.fromFile(this.files[0])" />
+        </label>
+
+        <div class="mt-2 p-5 glass-soft">
+          <label for="thr" class="text-sm flex justify-between font-semibold mb-3">
+            <span>ความเข้มงวดในการจับคู่</span><span id="thrVal" class="brand-text">0.48</span>
+          </label>
+          <input id="thr" type="range" min="0.35" max="0.65" step="0.01" value="0.48"
+                 oninput="thrVal.textContent=this.value;Attendee.liveRefilter()"
+                 class="w-full h-1.5 rounded-full appearance-none cursor-pointer" style="accent-color:var(--brand);background:var(--line)" />
+          <p class="text-xs mt-2" style="color:var(--muted)">ค่าน้อย = เข้มงวดขึ้น ได้รูปน้อยลงแต่แม่นกว่า</p>
+          <label class="flex items-center gap-2.5 mt-4 text-sm cursor-pointer">
+            <input id="rememberFace" type="checkbox" class="w-4 h-4 rounded" style="accent-color:var(--brand)" checked />
+            <span style="color:var(--muted)">จำใบหน้าไว้ในเครื่องนี้ (ค้นหาครั้งหน้าเร็วขึ้น)</span>
+          </label>
+        </div>
+        <p id="scanStatus" role="status" class="text-sm font-semibold brand-text min-h-[1.5rem]"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result toolbar -->
+  <div id="resultBar" class="hidden mt-8 pb-4 border-b" style="border-color:var(--line)">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 id="resultTitle" class="font-bold text-lg"></h2>
+      <div class="flex gap-2 flex-wrap w-full sm:w-auto">
+        <select id="sortBy" onchange="Gallery.render()" class="fld !py-2.5 !px-3.5 text-sm !w-auto font-medium cursor-pointer">
+          <option value="match">เรียง: ความแม่น</option>
+          <option value="new">เรียง: ใหม่สุด</option>
+          <option value="name">เรียง: ชื่อไฟล์</option>
+        </select>
+        <div class="btn btn-ghost px-1.5 py-1.5 gap-1">
+          <button onclick="Gallery.density('large')" class="px-2.5 py-1 rounded-full text-xs font-semibold">L</button>
+          <button onclick="Gallery.density('')" class="px-2.5 py-1 rounded-full text-xs font-semibold">M</button>
+          <button onclick="Gallery.density('dense')" class="px-2.5 py-1 rounded-full text-xs font-semibold">S</button>
+        </div>
         <button id="btnZip" onclick="Gallery.downloadZip()" class="btn btn-primary flex-1 sm:flex-none px-5 py-2.5 text-sm font-semibold">โหลดทั้งหมด (ZIP)</button>
         <button onclick="Attendee.startScan()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold">ค้นหาใหม่</button>
       </div>
     </div>
-
-    <div id="grid" class="masonry mt-5"></div>
-    <div id="emptyState" class="hidden text-center py-20 mt-5 glass hair">
-      <div class="text-4xl">🔍</div>
-      <p class="font-bold text-lg mt-3">ยังไม่พบรูปที่ตรงกับใบหน้าของคุณ</p>
-      <p class="text-sm mt-2 max-w-sm mx-auto" style="color:var(--muted)">ถ่ายเซลฟี่ใหม่ในที่สว่างขึ้น หรือเลื่อนค่าความเข้มงวดให้สูงขึ้นแล้วลองอีกครั้ง</p>
+    <div id="selBar" class="hidden mt-3 flex items-center gap-2 flex-wrap">
+      <span class="chip"><b id="selCount" class="brand-text">0</b> รูปที่เลือก</span>
+      <button onclick="Gallery.downloadZip(true)" class="btn btn-primary px-4 py-2 text-xs font-semibold">โหลดเฉพาะที่เลือก</button>
+      <button onclick="Gallery.selectAll()" class="btn btn-ghost px-4 py-2 text-xs font-semibold">เลือกทั้งหมด</button>
+      <button onclick="Gallery.clearSel()" class="btn btn-ghost px-4 py-2 text-xs font-semibold">ล้างการเลือก</button>
     </div>
+  </div>
 
-    <div id="dock" class="dock hidden sm:hidden">
-      <div class="glass hair px-2 py-2 flex gap-2 rounded-full">
-        <button onclick="Attendee.startScan()" class="btn btn-primary px-5 py-2.5 text-sm font-semibold rounded-full">เซลฟี่ค้นหา</button>
-        <button onclick="Attendee.showAll()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold rounded-full">ดูทั้งหมด</button>
+  <div id="grid" class="masonry mt-5"></div>
+
+  <div id="emptyState" class="hidden text-center py-20 mt-5 glass hair">
+    <div class="text-4xl">🔍</div>
+    <p class="font-bold text-lg mt-3">ยังไม่พบรูปที่ตรงกับใบหน้าของคุณ</p>
+    <p class="text-sm mt-2 max-w-sm mx-auto" style="color:var(--muted)">ถ่ายเซลฟี่ใหม่ในที่สว่างขึ้น หรือเลื่อนค่าความเข้มงวดให้สูงขึ้นแล้วลองอีกครั้ง</p>
+    <button onclick="Attendee.startScan()" class="btn btn-primary px-6 py-3 mt-5 text-sm font-semibold">ลองใหม่อีกครั้ง</button>
+  </div>
+
+  <div id="dock" class="dock hidden">
+    <div class="glass hair px-2 py-2 flex gap-2 !rounded-full">
+      <button onclick="Attendee.startScan()" class="btn btn-primary px-5 py-2.5 text-sm font-semibold">เซลฟี่ค้นหา</button>
+      <button onclick="Attendee.showAll()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold">ดูทั้งหมด</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ADMIN ================= -->
+<section id="view-admin" class="hidden">
+  <div id="adminGate" class="max-w-md mx-auto mt-16 glass hair p-9">
+    <h2 class="font-bold text-2xl">เข้าสู่ระบบผู้จัดงาน</h2>
+    <p class="text-sm mt-2" style="color:var(--muted)">กรอกรหัส PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
+    <input id="adminPin" type="password" inputmode="numeric" placeholder="••••••"
+           onkeydown="if(event.key==='Enter')Admin.login()"
+           class="fld mt-7 text-center text-xl tracking-[.4em] font-semibold" />
+    <label class="flex items-center gap-2.5 mt-4 text-sm cursor-pointer" style="color:var(--muted)">
+      <input id="keepPin" type="checkbox" class="w-4 h-4" style="accent-color:var(--brand)" checked /> จดจำไว้ในแท็บนี้
+    </label>
+    <button onclick="Admin.login()" id="btnLogin" class="btn btn-primary w-full mt-4 px-4 py-4 font-semibold">
+      <svg id="loginSpinner" class="hidden animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <span id="loginBtnText">เข้าสู่ระบบ</span>
+    </button>
+    <p id="adminErr" role="alert" class="text-sm mt-4 font-semibold text-center h-5" style="color:#FF6B6B"></p>
+  </div>
+
+  <div id="adminConsole" class="hidden">
+    <div class="flex items-center justify-between flex-wrap gap-4 pb-5 border-b" style="border-color:var(--line)">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold">แผงควบคุม<span class="grad-text">ผู้จัดงาน</span></h2>
+        <p class="text-sm mt-1" style="color:var(--muted)">สร้างงาน สร้าง QR และอัปโหลดรูปเข้าระบบ</p>
       </div>
-    </div>
-  </section>
-
-  <!-- หน้าผู้จัดงาน -->
-  <section id="view-admin" class="hidden">
-    <div id="adminGate" class="max-w-md mx-auto mt-16 glass hair p-9">
-      <h2 class="font-bold text-2xl">เข้าสู่ระบบผู้จัดงาน</h2>
-      <p class="text-sm mt-2" style="color:var(--muted)">กรอกรหัส PIN ที่ตั้งไว้ในไฟล์ Code.gs</p>
-      <input id="adminPin" type="password" inputmode="numeric" placeholder="••••••"
-             onkeydown="if(event.key==='Enter')Admin.login()"
-             class="fld mt-7 text-center text-xl tracking-[.4em] font-semibold" />
-      <button onclick="Admin.login()" id="btnLogin" class="btn btn-primary w-full mt-4 px-4 py-4 font-semibold flex items-center justify-center gap-2">
-        <svg id="loginSpinner" class="hidden animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        <span id="loginBtnText">เข้าสู่ระบบ</span>
-      </button>
-      <p id="adminErr" role="alert" class="text-sm mt-4 font-semibold text-center h-5" style="color:#FF6B6B"></p>
-    </div>
-
-    <div id="adminConsole" class="hidden">
-      <div class="flex items-center justify-between flex-wrap gap-4 pb-5 border-b" style="border-color:var(--line)">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold">แผงควบคุม<span class="grad-text">ผู้จัดงาน</span></h2>
-          <p class="text-sm mt-1" style="color:var(--muted)">สร้างงาน สร้าง QR และอัปโหลดรูปเข้าระบบ</p>
-        </div>
+      <div class="flex gap-2">
+        <button onclick="Admin.refresh()" class="btn btn-ghost text-sm px-5 py-2.5 font-semibold">รีเฟรช</button>
         <button onclick="Admin.logout()" class="btn btn-ghost text-sm px-5 py-2.5 font-semibold">ออกจากระบบ</button>
       </div>
-
-      <div class="grid lg:grid-cols-2 gap-6 mt-7">
-        <div class="glass hair p-7">
-          <h3 class="font-bold text-lg">สร้างงานใหม่</h3>
-          <div class="grid gap-3 mt-5">
-            <input id="evName" placeholder="ชื่องาน เช่น งานเลี้ยงปีใหม่บริษัท 2569" class="fld" />
-            <div class="grid grid-cols-2 gap-3">
-              <input id="evDate" type="date" class="fld" />
-              <input id="evVenue" placeholder="สถานที่จัดงาน" class="fld" />
-            </div>
-            <div class="grid grid-cols-2 gap-3 items-center">
-              <label class="text-sm flex items-center gap-3 px-4 py-2 glass-soft">
-                สีธีมงาน
-                <input id="evColor" type="color" value="#FF4D3D" class="w-9 h-9 border-0 cursor-pointer p-0 bg-transparent" />
-              </label>
-              <input id="evSponsor" placeholder="ลิงก์โลโก้ผู้สนับสนุน" class="fld" />
-            </div>
-            <button onclick="Admin.createEvent()" class="btn btn-primary mt-1 px-5 py-3.5 font-semibold">สร้างงานและ QR</button>
-          </div>
-
-          <div id="qrBox" class="hidden mt-7 p-6 glass-soft text-center">
-            <div id="qr" class="inline-block bg-white p-3 rounded-xl"></div>
-            <p id="qrLink" class="text-xs mt-4 break-all" style="color:var(--muted)"></p>
-            <button onclick="Admin.downloadQR()" class="btn btn-ghost mt-4 px-6 py-2.5 text-sm font-semibold">บันทึก QR (PNG)</button>
-          </div>
-        </div>
-
-        <div class="glass hair p-7">
-          <h3 class="font-bold text-lg">อัปโหลดรูปภาพ</h3>
-          <select id="evSelect" onchange="Admin.loadPhotos()" class="fld mt-5 font-medium cursor-pointer"></select>
-
-          <label id="dropZone" class="mt-4 block p-10 text-center cursor-pointer rounded-2xl transition-colors"
-                 style="border:1.5px dashed var(--line)">
-            <div class="text-3xl">📤</div>
-            <p class="font-semibold mt-2">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวางตรงนี้</p>
-            <p class="text-xs mt-2" style="color:var(--muted)">รองรับ JPG และ PNG ระบบจะย่อขนาดและสแกนใบหน้าให้อัตโนมัติ</p>
-            <input id="fileInput" type="file" accept="image/*" multiple class="hidden" onchange="Admin.queue(this.files)" />
-          </label>
-
-          <div class="mt-5">
-            <div class="h-2 rounded-full overflow-hidden" style="background:var(--line)">
-              <div id="upBar" class="h-full brand-bg w-0 transition-all duration-300"></div>
-            </div>
-            <p id="upStatus" class="text-sm font-semibold mt-3" style="color:var(--muted)">พร้อมทำงาน</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-10 flex items-center justify-between pb-4 mb-5 border-b" style="border-color:var(--line)">
-        <h3 class="font-bold text-xl">รูปในงานนี้</h3>
-        <span id="adminCount" class="text-sm font-semibold" style="color:var(--muted)">0 รูป</span>
-      </div>
-      <div id="adminGrid" class="masonry"></div>
     </div>
-  </section>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-7">
+      <div class="stat"><b id="stEvents" class="brand-text">0</b><span class="text-xs" style="color:var(--muted)">งานทั้งหมด</span></div>
+      <div class="stat"><b id="stPhotos">0</b><span class="text-xs" style="color:var(--muted)">รูปในงานนี้</span></div>
+      <div class="stat"><b id="stFaces">0</b><span class="text-xs" style="color:var(--muted)">ใบหน้าที่ตรวจพบ</span></div>
+      <div class="stat"><b id="stNoFace">0</b><span class="text-xs" style="color:var(--muted)">รูปที่ไม่มีใบหน้า</span></div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <!-- Create -->
+      <div class="glass hair spot p-7">
+        <h3 class="font-bold text-lg">สร้างงานใหม่</h3>
+        <div class="grid gap-3 mt-5">
+          <input id="evName" placeholder="ชื่องาน เช่น งานเลี้ยงปีใหม่บริษัท 2569" class="fld" />
+          <div class="grid grid-cols-2 gap-3">
+            <input id="evDate" type="date" class="fld" />
+            <input id="evVenue" placeholder="สถานที่จัดงาน" class="fld" />
+          </div>
+          <div class="grid grid-cols-2 gap-3 items-center">
+            <label class="text-sm flex items-center gap-3 px-4 py-2 glass-soft">
+              สีธีมงาน
+              <input id="evColor" type="color" value="#FF4D3D" class="w-9 h-9 border-0 cursor-pointer p-0 bg-transparent" />
+            </label>
+            <input id="evSponsor" placeholder="ลิงก์โลโก้ผู้สนับสนุน" class="fld" />
+          </div>
+          <button onclick="Admin.createEvent()" id="btnCreate" class="btn btn-primary mt-1 px-5 py-3.5 font-semibold">สร้างงานและ QR</button>
+        </div>
+
+        <div id="qrBox" class="hidden mt-7 p-6 glass-soft text-center">
+          <div id="qr" class="inline-block bg-white p-3 rounded-xl"></div>
+          <p id="qrLink" class="text-xs mt-4 break-all" style="color:var(--muted)"></p>
+          <div class="flex gap-2 justify-center mt-4 flex-wrap">
+            <button onclick="Admin.downloadQR()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold">บันทึก QR (PNG)</button>
+            <button onclick="Admin.copyLink()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold">คัดลอกลิงก์</button>
+            <button onclick="Admin.printQR()" class="btn btn-ghost px-5 py-2.5 text-sm font-semibold">พิมพ์ป้าย</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="glass hair spot p-7">
+        <h3 class="font-bold text-lg">อัปโหลดรูปภาพ</h3>
+        <select id="evSelect" onchange="Admin.loadPhotos()" class="fld mt-5 font-medium cursor-pointer"></select>
+
+        <label id="dropZone" class="mt-4 block p-10 text-center cursor-pointer rounded-2xl transition-all" style="border:1.5px dashed var(--line)">
+          <div class="text-3xl">📤</div>
+          <p class="font-semibold mt-2">คลิกเพื่อเลือกไฟล์ หรือลากรูปมาวางตรงนี้</p>
+          <p class="text-xs mt-2" style="color:var(--muted)">JPG / PNG / WebP · ระบบย่อขนาดและสแกนใบหน้าให้อัตโนมัติ</p>
+          <input id="fileInput" type="file" accept="image/*" multiple class="hidden" onchange="Admin.queue(this.files)" />
+        </label>
+
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <label class="text-xs flex items-center justify-between gap-2 px-4 py-2.5 glass-soft" style="color:var(--muted)">
+            ความกว้างสูงสุด
+            <select id="upMax" class="bg-transparent text-right font-semibold outline-none" style="color:var(--fg)">
+              <option value="1280">1280px</option><option value="1600" selected>1600px</option><option value="2048">2048px</option>
+            </select>
+          </label>
+          <label class="text-xs flex items-center justify-between gap-2 px-4 py-2.5 glass-soft" style="color:var(--muted)">
+            อัปโหลดพร้อมกัน
+            <select id="upConc" class="bg-transparent text-right font-semibold outline-none" style="color:var(--fg)">
+              <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mt-5">
+          <div class="h-2 rounded-full overflow-hidden" style="background:var(--line)">
+            <div id="upBar" class="h-full brand-bg w-0 transition-all duration-300"></div>
+          </div>
+          <div class="flex items-center justify-between mt-3 gap-3">
+            <p id="upStatus" class="text-sm font-semibold" style="color:var(--muted)">พร้อมทำงาน</p>
+            <button id="btnRetry" onclick="Admin.retryFailed()" class="hidden btn btn-danger px-4 py-2 text-xs font-semibold">ลองใหม่ที่ล้มเหลว</button>
+          </div>
+          <div id="upLog" class="mt-3 grid gap-1.5 max-h-44 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-10 flex items-center justify-between flex-wrap gap-3 pb-4 mb-5 border-b" style="border-color:var(--line)">
+      <h3 class="font-bold text-xl">รูปในงานนี้</h3>
+      <div class="flex items-center gap-2">
+        <span id="adminCount" class="text-sm font-semibold" style="color:var(--muted)">0 รูป</span>
+        <button onclick="Admin.shareEventLink()" class="btn btn-ghost px-4 py-2 text-xs font-semibold">ลิงก์ผู้ร่วมงาน</button>
+      </div>
+    </div>
+    <div id="adminGrid" class="masonry"></div>
+  </div>
+</section>
 </main>
 
-<div id="lightbox" class="hidden fixed inset-0 z-50 items-center justify-center p-4" style="background:rgba(4,5,8,.94);backdrop-filter:blur(8px)">
-  <button onclick="Gallery.closeLightbox()" aria-label="ปิด" class="absolute top-5 right-6 text-white/60 hover:text-white text-3xl">✕</button>
-  <button onclick="Gallery.step(-1)" aria-label="ก่อนหน้า" class="absolute left-3 md:left-8 text-white/45 hover:text-white text-5xl px-2">‹</button>
-  <img id="lbImg" alt="" class="max-h-[80vh] max-w-full object-contain rounded-2xl shadow-2xl" />
-  <button onclick="Gallery.step(1)" aria-label="ถัดไป" class="absolute right-3 md:right-8 text-white/45 hover:text-white text-5xl px-2">›</button>
-  <a id="lbDl" target="_blank" rel="noopener" class="btn btn-primary absolute bottom-8 px-7 py-3.5 font-semibold">ดาวน์โหลดความละเอียดเต็ม</a>
+<!-- ================= LIGHTBOX ================= -->
+<div id="lightbox" onclick="if(event.target===this)Lightbox.close()">
+  <div class="flex items-center justify-between px-5 py-4 gap-3">
+    <div class="min-w-0">
+      <p id="lbName" class="font-semibold text-white truncate text-sm"></p>
+      <p id="lbMeta" class="text-xs" style="color:#9AA0AC"></p>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="Lightbox.download()" class="btn btn-ghost h-10 px-4 text-sm font-semibold !text-white">ดาวน์โหลด</button>
+      <button onclick="Lightbox.share()" class="btn btn-ghost h-10 px-4 text-sm font-semibold !text-white">แชร์</button>
+      <button onclick="Lightbox.close()" class="btn btn-ghost w-10 h-10 !text-white">✕</button>
+    </div>
+  </div>
+  <div class="flex-1 flex items-center justify-between gap-3 px-3 min-h-0">
+    <button onclick="Lightbox.prev()" class="lbnav shrink-0">‹</button>
+    <div class="flex-1 h-full grid place-items-center overflow-hidden p-2">
+      <img id="lbImg" onclick="this.classList.toggle('zoom')" alt="" />
+    </div>
+    <button onclick="Lightbox.next()" class="lbnav shrink-0">›</button>
+  </div>
+  <div id="lbFilm" class="film"></div>
 </div>
 
-<div id="toast" role="status" class="fixed left-1/2 -translate-x-1/2 z-[60] hidden px-5 py-3.5 glass hair text-sm font-medium"
-     style="bottom:calc(84px + env(safe-area-inset-bottom,0px))"></div>
+<!-- ================= COMMAND PALETTE ================= -->
+<div id="cmdk" onclick="if(event.target===this)Cmd.close()">
+  <div class="max-w-lg mx-auto mt-[14vh] glass hair p-3" onclick="event.stopPropagation()">
+    <input id="cmdInput" class="fld !border-0 !bg-transparent text-base" placeholder="พิมพ์คำสั่ง หรือรหัสงาน…" oninput="Cmd.filter()" onkeydown="Cmd.key(event)" />
+    <div id="cmdList" class="mt-2 max-h-[45vh] overflow-y-auto"></div>
+    <p class="text-[.7rem] px-3 py-2" style="color:var(--muted)">↑↓ เลื่อน · Enter เลือก · Esc ปิด</p>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<footer class="border-t py-10 mt-10" style="border-color:var(--line)">
+  <div class="max-w-[1240px] mx-auto px-5 flex flex-wrap items-center justify-between gap-4 text-sm" style="color:var(--muted)">
+    <p>© <span id="yr"></span> FaceSnap · ประมวลผลใบหน้าฝั่งผู้ใช้ทั้งหมด</p>
+    <div class="flex gap-4">
+      <button onclick="Router.go('landing')" class="hover:opacity-70">หน้าแรก</button>
+      <button onclick="Router.go('admin')" class="hover:opacity-70">ผู้จัดงาน</button>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-/* 0) ตั้งค่า ─────────────────────────────────────────── */
+/* ============================================================
+   CONFIG — API เดิมทั้งหมด
+   ============================================================ */
 const API = 'https://script.google.com/macros/s/AKfycbwR_DkqUrCBtVGiqmbssgEgV-saD-hkzjyG-h-4G0MYWayR3gmCwjGUzSCU7cZ6jUCn/exec';
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-const State = { event:null, photos:[], view:[], lbIndex:0,
-                pin:sessionStorage.getItem('pin')||'', modelsReady:false, stream:null };
+const $ = id => document.getElementById(id);
 
-/* 1) ตัวช่วย ────────────────────────────────────────── */
-const $  = id => document.getElementById(id);
-const qs = k => new URLSearchParams(location.search).get(k);
-const thNum = n => Number(n||0).toLocaleString('th-TH');
-const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c =>
-  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-/* ธีมสว่าง/มืด */
-const Theme = {
-  init(){ const t=localStorage.getItem('theme')|| (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'); Theme.set(t); },
-  set(t){ document.documentElement.dataset.theme=t; localStorage.setItem('theme',t);
-          $('themeBtn').textContent = t==='light'?'☀':'☾';
-          document.querySelector('meta[name=theme-color]').setAttribute('content', t==='light'?'#F3F4F7':'#0B0C10'); },
-  toggle(){ Theme.set(document.documentElement.dataset.theme==='light'?'dark':'light'); }
-};
-
-function toast(msg, ms=3000){
-  const t=$('toast'); t.textContent=msg; t.classList.remove('hidden');
-  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.add('hidden'), ms);
-}
+/* ---------- API layer ---------- */
 async function apiGet(params){
-  try{
-    const u=new URL(API); Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
-    const res=await fetch(u); return await res.json();
-  }catch(err){ console.error('API GET:',err); return {ok:false, error:'Network Error'}; }
+  const res = await fetch(API + '?' + new URLSearchParams(params));
+  const j = await res.json();
+  if(j && j.ok === false) throw new Error(j.error || 'คำขอไม่สำเร็จ');
+  return j;
 }
 async function apiPost(payload){
-  try{
-    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify(payload)});
-    return await res.json();
-  }catch(err){ console.error('API POST:',err); return {ok:false, error:'Network Error'}; }
-}
-function applyBranding(ev){
-  const c=ev.themeColor||'#FF4D3D', root=document.documentElement.style;
-  root.setProperty('--brand',c);
-  root.setProperty('--brand-2',shade(c,-28));
-  if(ev.sponsorLogoUrl){ $('sponsorLogo').src=ev.sponsorLogoUrl; $('sponsorLogo').classList.remove('hidden'); }
-}
-function shade(hex,deg){
-  const n=parseInt(String(hex).slice(1),16);
-  let r=(n>>16)&255,g=(n>>8)&255,b=n&255;
-  r=Math.min(255,Math.max(0,r-deg)); g=Math.min(255,Math.max(0,g+deg*0.4)); b=Math.min(255,Math.max(0,b+deg*0.2));
-  return '#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
-}
-function resizeToDataUrl(file,maxSide=2000,quality=.86){
-  return new Promise((resolve,reject)=>{
-    const img=new Image(), url=URL.createObjectURL(file);
-    img.onload=()=>{
-      const s=Math.min(1,maxSide/Math.max(img.width,img.height));
-      const cv=document.createElement('canvas');
-      cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      URL.revokeObjectURL(url);
-      resolve({dataUrl:cv.toDataURL('image/jpeg',quality),width:cv.width,height:cv.height,canvas:cv});
-    };
-    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('อ่านไฟล์รูปไม่ได้')); };
-    img.src=url;
+  const res = await fetch(API, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'}, // เลี่ยง CORS preflight ของ Apps Script
+    body: JSON.stringify(payload)
   });
+  const j = await res.json();
+  if(j && j.ok === false) throw new Error(j.error || 'คำขอไม่สำเร็จ');
+  return j;
 }
-/* เผยองค์ประกอบตอนเลื่อนถึง */
-const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.12});
-const observeReveals=()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el));
 
-/* 2) เอนจินจดจำใบหน้า (ทำงานในเครื่อง 100%) ───────── */
-const Face = {
-  _loading:null,
-  load(status){
-    if(State.modelsReady) return Promise.resolve();
-    if(!Face._loading){
-      status && status('กำลังโหลดโมเดล AI…');
-      Face._loading = (async()=>{
-        await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-        State.modelsReady = true;
-      })().catch(e=>{ Face._loading=null; throw e; });
+/* ============================================================
+   UI UTILITIES
+   ============================================================ */
+const Toast = {
+  show(msg, type='info', ms=3400){
+    const icon = {info:'💬', ok:'✅', warn:'⚠️', err:'⛔', load:'⏳'}[type] || '💬';
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = `<span>${icon}</span><span class="flex-1">${msg}</span>`;
+    $('toasts').appendChild(el);
+    if(ms) setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),300); }, ms);
+    return el;
+  },
+  kill(el){ if(el){ el.classList.add('out'); setTimeout(()=>el.remove(),300); } }
+};
+
+const Theme = {
+  init(){ const t = localStorage.getItem('fs.theme') || 'dark'; this.set(t); },
+  set(t){ document.documentElement.dataset.theme = t; localStorage.setItem('fs.theme',t); $('themeBtn').textContent = t==='dark' ? '🌙' : '☀️'; },
+  toggle(){ this.set(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); }
+};
+
+function applyBrand(hex){
+  if(!hex) return;
+  document.documentElement.style.setProperty('--brand', hex);
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  document.documentElement.style.setProperty('--brand-rgb', `${r},${g},${b}`);
+  document.documentElement.style.setProperty('--brand2', shiftHue(hex, 28));
+}
+function shiftHue(hex, deg){
+  let r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b); let h,s,l=(max+min)/2;
+  if(max===min){ h=s=0; } else {
+    const d=max-min; s = l>.5 ? d/(2-max-min) : d/(max+min);
+    h = max===r ? (g-b)/d+(g<b?6:0) : max===g ? (b-r)/d+2 : (r-g)/d+4; h/=6;
+  }
+  h = (h*360 + deg) % 360 / 360;
+  const hue2=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+  const q = l<.5 ? l*(1+s) : l+s-l*s, p = 2*l-q;
+  const to=v=>Math.round(hue2(p,q,v)*255).toString(16).padStart(2,'0');
+  return `#${to(h+1/3)}${to(h)}${to(h-1/3)}`;
+}
+
+/* Ripple + magnetic + spotlight + reveal */
+document.addEventListener('click', e=>{
+  const b = e.target.closest('.btn'); if(!b) return;
+  const r = b.getBoundingClientRect(), d = Math.max(r.width,r.height);
+  const s = document.createElement('span'); s.className='ripple';
+  s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+  b.appendChild(s); setTimeout(()=>s.remove(),620);
+});
+document.addEventListener('mousemove', e=>{
+  document.querySelectorAll('.spot').forEach(c=>{
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx', (e.clientX-r.left)+'px');
+    c.style.setProperty('--my', (e.clientY-r.top)+'px');
+  });
+  const t=$('heroTilt');
+  if(t){ const r=t.getBoundingClientRect();
+    if(r.top<innerHeight && r.bottom>0){
+      const x=((e.clientX-r.left)/r.width-.5), y=((e.clientY-r.top)/r.height-.5);
+      t.style.transform=`perspective(700px) rotateY(${x*14}deg) rotateX(${-y*14}deg)`;
     }
-    return Face._loading;
+  }
+});
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }), {threshold:.12});
+function observeReveal(){ document.querySelectorAll('.reveal:not(.in)').forEach(el=>io.observe(el)); }
+
+addEventListener('scroll', ()=>{
+  const h = document.documentElement;
+  $('bar').style.width = (h.scrollTop/(h.scrollHeight-h.clientHeight)*100||0)+'%';
+}, {passive:true});
+
+addEventListener('online', ()=>$('offlineBar').classList.remove('on'));
+addEventListener('offline', ()=>$('offlineBar').classList.add('on'));
+
+/* ============================================================
+   FACE ENGINE (ทำงานในเครื่อง 100%)
+   ============================================================ */
+const Face = {
+  ready:false, _p:null,
+  load(){
+    if(this.ready) return Promise.resolve();
+    if(this._p) return this._p;
+    this._p = (async()=>{
+      await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+      try{ await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL); }catch(e){}
+      this.ready = true;
+    })();
+    return this._p;
   },
-  async describeAll(input){
-    const res=await faceapi.detectAllFaces(input,new faceapi.SsdMobilenetv1Options({minConfidence:.42}))
-                           .withFaceLandmarks().withFaceDescriptors();
-    return res.map(r=>Array.from(r.descriptor));
+  async describeAll(img){
+    await this.load();
+    const r = await faceapi.detectAllFaces(img).withFaceLandmarks().withFaceDescriptors();
+    return r.map(d=>Array.from(d.descriptor));
   },
-  async describeOne(input){
-    const res=await faceapi.detectSingleFace(input,new faceapi.SsdMobilenetv1Options({minConfidence:.3}))
-                           .withFaceLandmarks().withFaceDescriptor();
-    return res?Array.from(res.descriptor):null;
+  async describeOne(img){
+    await this.load();
+    const r = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+    return r ? Array.from(r.descriptor) : null;
   },
-  dist(a,b){ let s=0; for(let i=0;i<a.length;i++){const d=a[i]-b[i]; s+=d*d;} return Math.sqrt(s); },
-  match(selfie,photos,threshold){
-    const out=[];
-    photos.forEach(p=>{
-      let best=99;
-      (p.descriptors||[]).forEach(d=>{ const dd=Face.dist(selfie,d); if(dd<best) best=dd; });
-      if(best<=threshold) out.push(Object.assign({_score:best},p));
-    });
-    return out.sort((a,b)=>a._score-b._score);
+  async quickDetect(el){
+    if(!faceapi.nets.tinyFaceDetector.isLoaded) return null;
+    return await faceapi.detectSingleFace(el, new faceapi.TinyFaceDetectorOptions({inputSize:224, scoreThreshold:.45}));
+  },
+  match(a,b){ let s=0; for(let i=0;i<a.length;i++){ const d=a[i]-b[i]; s+=d*d; } return Math.sqrt(s); },
+  confidence(dist){ return Math.max(0, Math.min(100, Math.round((1 - dist/0.78)*100))); }
+};
+
+/* ============================================================
+   STATE + NORMALIZER
+   ============================================================ */
+const State = { eventId:null, event:null, photos:[], view:[], selected:new Set(), lastDescriptor:null, mode:'all' };
+
+function parseDesc(d){
+  if(!d) return [];
+  if(typeof d === 'string'){ try{ d = JSON.parse(d); }catch(e){ return []; } }
+  if(!Array.isArray(d)) return [];
+  return Array.isArray(d[0]) ? d : (typeof d[0]==='number' ? [d] : []);
+}
+function normalize(p){
+  const fileId = p.fileId || p.driveId || p.fileID || p.id;
+  return {
+    id: p.photoId || p.id || fileId,
+    fileId,
+    name: p.fileName || p.name || 'photo.jpg',
+    thumb: p.thumbUrl || p.thumb || (fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w720` : p.url),
+    full:  p.url || p.viewUrl || (fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : p.thumbUrl),
+    w: +p.width || 4, h: +p.height || 3,
+    at: p.createdAt || p.uploadedAt || p.timestamp || 0,
+    descriptors: parseDesc(p.descriptors),
+    dist:null, conf:null
+  };
+}
+
+/* ============================================================
+   ROUTER
+   ============================================================ */
+const Router = {
+  go(view, push=true){
+    ['landing','event','admin'].forEach(v=>$('view-'+v).classList.toggle('hidden', v!==view));
+    State.view = view;
+    $('dock').classList.toggle('hidden', view!=='event');
+    if(push){
+      const h = view==='admin' ? '#/admin' : view==='event' ? '#/e/'+State.eventId : '#/';
+      history.pushState({}, '', h);
+    }
+    scrollTo({top:0, behavior:'instant'});
+    observeReveal();
+    if(view==='landing') Recent.render();
+  },
+  async openEvent(code){
+    if(!code) return Toast.show('กรอกรหัสงานก่อนนะครับ','warn');
+    State.eventId = code;
+    this.go('event');
+    Gallery.skeleton(8);
+    try{
+      const r = await apiGet({action:'getEvent', eventId:code});
+      const ev = r.event || r.data || r;
+      if(!ev || (!ev.name && !ev.eventName)) throw new Error('ไม่พบงานนี้');
+      State.event = ev;
+      $('eventName').textContent = ev.name || ev.eventName;
+      const bits = [ev.eventDate||ev.date, ev.venue].filter(Boolean);
+      $('eventMeta').textContent = bits.join(' · ') || 'พร้อมค้นหารูปของคุณแล้ว';
+      if(ev.themeColor) applyBrand(ev.themeColor);
+      if(ev.coverUrl) $('eventCover').style.backgroundImage = `url(${ev.coverUrl})`;
+      if(ev.sponsorLogoUrl){ $('sponsorLogo').src = ev.sponsorLogoUrl; $('sponsorLogo').classList.remove('hidden'); }
+      Recent.add({code, name: ev.name||ev.eventName});
+      $('savedFaceBar').classList.toggle('hidden', !localStorage.getItem('fs.face'));
+      await Attendee.showAll();
+    }catch(err){
+      Gallery.clearSkeleton();
+      Toast.show('เปิดงานไม่ได้: '+err.message,'err');
+      this.go('landing');
+    }
+  },
+  boot(){
+    const q = new URLSearchParams(location.search);
+    const h = location.hash;
+    const code = q.get('e') || q.get('eventId') || (h.startsWith('#/e/') ? h.slice(4) : null);
+    if(h.startsWith('#/admin')) return this.go('admin', false);
+    if(code) return this.openEvent(code);
+    this.go('landing', false);
+  }
+};
+addEventListener('popstate', ()=>Router.boot());
+
+/* ============================================================
+   RECENT EVENTS (localStorage)
+   ============================================================ */
+const Recent = {
+  all(){ try{ return JSON.parse(localStorage.getItem('fs.recent')||'[]'); }catch(e){ return []; } },
+  add(e){
+    let l = this.all().filter(x=>x.code!==e.code);
+    l.unshift(e); l = l.slice(0,6);
+    localStorage.setItem('fs.recent', JSON.stringify(l));
+  },
+  render(){
+    const l = this.all();
+    $('recentWrap').classList.toggle('hidden', !l.length);
+    $('recentList').innerHTML = l.map(e=>
+      `<button onclick="Router.openEvent('${e.code}')" class="chip hover:opacity-80" style="color:var(--fg)">📍 ${e.name||e.code}</button>`
+    ).join('');
   }
 };
 
-/* 3) เส้นทาง ?event=abc | ?admin=1 | #admin ─────────── */
-const Router = {
-  init(){
-    const ev=qs('event'), admin=qs('admin')||location.hash==='#admin';
-    if(admin) return Router.go('admin');
-    if(ev)    return Attendee.loadEvent(ev);
-    Router.show('landing'); observeReveals();
-  },
-  show(n){ ['landing','event','admin'].forEach(v=>$('view-'+v).classList.toggle('hidden',v!==n));
-           $('dock').classList.toggle('hidden', n!=='event'); },
-  go(n){
-    if(n==='admin'){ Router.show('admin'); State.pin?Admin.enter():$('adminGate').classList.remove('hidden'); }
-    else Router.show(n);
-  },
-  openEvent(code){ if(code) location.search='?event='+encodeURIComponent(code); }
-};
-
-/* 4) ฝั่งผู้ร่วมงาน ─────────────────────────────────── */
+/* ============================================================
+   ATTENDEE
+   ============================================================ */
 const Attendee = {
-  async loadEvent(id){
-    Router.show('event');
-    $('grid').innerHTML=Array.from({length:6},()=>'<div class="shimmer h-56"></div>').join('');
-    const r=await apiGet({action:'getEvent', eventId:id});
-    if(!r.ok){ toast(r.error==='Event not found'?'ไม่พบงานนี้ในระบบ':'เปิดงานนี้ไม่ได้ ลองใหม่อีกครั้ง'); $('grid').innerHTML=''; Router.show('landing'); return; }
+  stream:null, facing:'user', liveTimer:null,
 
-    State.event=r.event; applyBranding(r.event);
-    $('eventName').textContent=r.event.name;
-    $('eventMeta').textContent=[r.event.eventDate,r.event.venue,'ทั้งหมด '+thNum(r.event.photoCount)+' รูป'].filter(Boolean).join('  ·  ');
-    if(r.event.coverUrl) $('eventCover').style.backgroundImage=`url('${r.event.coverUrl}')`;
-    document.title=r.event.name+' — สแนปไฟน์';
-
-    const p=await apiGet({action:'listPhotos', eventId:id});
-    State.photos=p.ok?p.photos:[];
-    $('grid').innerHTML='';
-    Face.load(m=>$('scanStatus').textContent=m).catch(()=>{});
+  async fetchPhotos(force){
+    if(State.photos.length && !force) return State.photos;
+    const r = await apiGet({action:'listPhotos', eventId:State.eventId});
+    State.photos = (r.photos||[]).map(normalize);
+    return State.photos;
   },
-  startScan(){ $('scanPanel').classList.remove('hidden'); $('scanPanel').scrollIntoView({behavior:'smooth',block:'center'}); },
-  closeScan(){ $('scanPanel').classList.add('hidden'); Attendee.stopCam(); },
+
+  async showAll(){
+    this.closeScan();
+    State.mode='all';
+    Gallery.skeleton(10);
+    try{
+      await this.fetchPhotos();
+      State.photos.forEach(p=>{ p.dist=null; p.conf=null; });
+      Gallery.set(State.photos, `รูปทั้งหมดในงาน · ${State.photos.length} รูป`);
+    }catch(e){ Gallery.clearSkeleton(); Toast.show('โหลดรูปไม่สำเร็จ: '+e.message,'err'); }
+  },
+
+  startScan(){
+    $('scanPanel').classList.remove('hidden');
+    $('scanPanel').scrollIntoView({behavior:'smooth', block:'center'});
+    Face.load().then(()=>$('scanStatus').textContent='พร้อมสแกนแล้ว ✓').catch(()=>{});
+  },
+  closeScan(){
+    $('scanPanel').classList.add('hidden');
+    this.stopCam();
+  },
+  stopCam(){
+    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    clearInterval(this.liveTimer);
+    $('cam').classList.add('hidden'); $('liveHud').classList.add('hidden');
+    $('btnCapture').disabled = true;
+  },
 
   async openCamera(){
     try{
-      State.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:720}});
-      const v=$('cam'); v.srcObject=State.stream; v.classList.remove('hidden');
-      $('selfiePreview').classList.add('hidden'); $('camHint').classList.add('hidden'); $('btnCapture').disabled=false;
-    }catch(e){ toast('เปิดกล้องไม่ได้ ใช้ปุ่มอัปโหลดรูปหน้าตรงแทนได้'); }
-  },
-  stopCam(){
-    if(State.stream){ State.stream.getTracks().forEach(t=>t.stop()); State.stream=null; }
-    $('cam').srcObject=null; $('cam').classList.add('hidden'); $('btnCapture').disabled=true;
-  },
-  async capture(){
-    const v=$('cam');
-    if(!v.videoWidth) return toast('กล้องยังไม่พร้อม รออีกสักครู่');
-    const cv=document.createElement('canvas');
-    cv.width=v.videoWidth; cv.height=v.videoHeight;
-    cv.getContext('2d').drawImage(v,0,0);
-    $('selfiePreview').src=cv.toDataURL('image/jpeg',.9); $('selfiePreview').classList.remove('hidden');
-    $('camHint').classList.add('hidden'); Attendee.stopCam();
-    await Attendee.search(cv);
-  },
-  async fromFile(file){
-    if(!file) return;
-    try{
-      const {canvas,dataUrl}=await resizeToDataUrl(file,1000,.92);
-      $('selfiePreview').src=dataUrl; $('selfiePreview').classList.remove('hidden');
-      $('camHint').classList.add('hidden'); Attendee.stopCam();
-      await Attendee.search(canvas);
-    }catch(e){ toast('อ่านไฟล์รูปนี้ไม่ได้ ลองไฟล์อื่น'); }
-  },
-
-  async search(input){
-    const st=m=>$('scanStatus').textContent=m;
-    $('scanOverlay').classList.remove('hidden');
-    try{
-      await Face.load(st);
-      st('กำลังอ่านใบหน้าของคุณ…');
-      const me=await Face.describeOne(input);
-      if(!me){ st(''); toast('ไม่พบใบหน้าในรูป ถ่ายใหม่ในที่สว่างขึ้น'); return; }
-
-      st('กำลังเทียบกับรูปทั้งหมด '+thNum(State.photos.length)+' รูป…');
-      const thr=parseFloat($('thr').value);
-      const hits=Face.match(me,State.photos,thr);
-
-      Gallery.render(hits, hits.length?`พบรูปของคุณ ${thNum(hits.length)} รูป`:'ผลการค้นหา');
-      apiPost({action:'track', eventId:State.event.eventId, type:'search', detail:{matches:hits.length,thr}});
-      st('ค้นหาเสร็จแล้ว'); Attendee.closeScan();
-      $('resultBar').scrollIntoView({behavior:'smooth',block:'start'});
+      $('scanStatus').textContent = 'กำลังเปิดกล้อง…';
+      this.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:this.facing, width:{ideal:1280}, height:{ideal:960} }, audio:false });
+      const v = $('cam'); v.srcObject = this.stream;
+      v.classList.remove('hidden'); $('camHint').classList.add('hidden'); $('selfiePreview').classList.add('hidden');
+      $('scanOverlay').classList.remove('hidden'); $('liveHud').classList.remove('hidden');
+      $('btnCapture').disabled = false;
+      $('scanStatus').textContent = '';
+      Face.load().then(()=>this.startLive());
     }catch(e){
-      st(''); toast('โหลดโมเดลไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
-    }finally{ $('scanOverlay').classList.add('hidden'); }
-  },
-  showAll(){ Gallery.render(State.photos, `รูปทั้งหมดในงาน ${thNum(State.photos.length)} รูป`); }
-};
-
-/* 5) แกลเลอรี ───────────────────────────────────────── */
-const Gallery = {
-  render(list,title){
-    State.view=list;
-    $('resultBar').classList.remove('hidden'); $('resultTitle').textContent=title;
-    const canZip = list.length && !(State.event && State.event.allowDownload===false);
-    $('btnZip').classList.toggle('hidden', !canZip);
-    $('emptyState').classList.toggle('hidden', list.length>0);
-
-    $('grid').innerHTML=list.map((p,i)=>`
-      <figure class="ph group cursor-pointer reveal" style="transition-delay:${Math.min(i,10)*40}ms" onclick="Gallery.openLightbox(${i})">
-        <img src="${esc(p.thumbUrl)}" loading="lazy" decoding="async" alt="${esc(p.fileName)}"
-             class="w-full block" onerror="this.src='${esc(p.viewUrl)}'" />
-        <figcaption class="absolute inset-x-0 bottom-0 p-3 flex justify-between items-center
-                     opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-                    style="background:linear-gradient(to top,rgba(0,0,0,.8),transparent)">
-          ${p._score!==undefined
-            ? `<span class="text-[11px] text-white px-2.5 py-1 rounded-full" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(6px)">ตรงกัน ${Math.round((1-p._score)*100)}%</span>`
-            : '<span></span>'}
-          <a href="${esc(p.downloadUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
-             class="text-xs bg-white text-black px-3 py-1 rounded-full font-semibold">บันทึก</a>
-        </figcaption>
-      </figure>`).join('');
-    observeReveals();
-  },
-  openLightbox(i){
-    State.lbIndex=i; const p=State.view[i];
-    $('lbImg').src=p.viewUrl; $('lbImg').alt=p.fileName||''; $('lbDl').href=p.downloadUrl;
-    $('lightbox').classList.replace('hidden','flex');
-  },
-  closeLightbox(){ $('lightbox').classList.replace('flex','hidden'); },
-  step(d){ const n=State.view.length; if(!n) return; Gallery.openLightbox((State.lbIndex+d+n)%n); },
-
-  async downloadZip(){
-    if(!State.view.length) return;
-    const btn=$('btnZip'), zip=new JSZip(), label=btn.textContent;
-    btn.disabled=true;
-    for(let i=0;i<State.view.length;i++){
-      btn.textContent=`กำลังรวมไฟล์ ${i+1}/${State.view.length}…`;
-      try{
-        const r=await apiGet({action:'download', fileId:State.view[i].fileId});
-        if(r.ok) zip.file(r.fileName||`photo-${i+1}.jpg`, r.base64, {base64:true});
-      }catch(e){ console.warn('ข้ามไฟล์',e); }
+      Toast.show('เปิดกล้องไม่ได้ — ตรวจสอบสิทธิ์การเข้าถึงกล้อง','err');
+      $('scanStatus').textContent = '';
     }
-    btn.textContent='กำลังบีบอัด…';
-    const blob=await zip.generateAsync({type:'blob'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=((State.event&&State.event.eventId)||'photos')+'.zip';
-    a.click(); URL.revokeObjectURL(a.href);
-    btn.textContent=label; btn.disabled=false;
-    toast('ไฟล์ ZIP พร้อมแล้ว');
+  },
+  flip(){ this.facing = this.facing==='user' ? 'environment' : 'user'; if(this.stream){ this.stopCam(); this.openCamera(); } },
+
+  startLive(){
+    clearInterval(this.liveTimer);
+    this.liveTimer = setInterval(async ()=>{
+      const v = $('cam'); if(!v || v.classList.contains('hidden') || !v.videoWidth) return;
+      try{
+        const d = await Face.quickDetect(v);
+        const txt = $('liveTxt');
+        if(!d){ txt.textContent = '🔍 ยังไม่เจอใบหน้า — ขยับเข้ามาใกล้อีกนิด'; return; }
+        const ratio = d.box.width / v.videoWidth;
+        if(ratio < .18) txt.textContent = '📏 ไกลไป ขยับเข้ามาใกล้กล้อง';
+        else if(ratio > .72) txt.textContent = '📏 ใกล้ไป ถอยออกนิดนึง';
+        else txt.textContent = '✅ เยี่ยม! กดถ่ายได้เลย';
+      }catch(e){}
+    }, 700);
+  },
+
+  async capture(){
+    const v = $('cam');
+    if(!v.videoWidth) return Toast.show('กล้องยังไม่พร้อม','warn');
+    const c = document.createElement('canvas');
+    const max = 720, sc = Math.min(1, max/Math.max(v.videoWidth,v.videoHeight));
+    c.width = v.videoWidth*sc; c.height = v.videoHeight*sc;
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    const url = c.toDataURL('image/jpeg', .92);
+    $('selfiePreview').src = url; $('selfiePreview').classList.remove('hidden');
+    v.classList.add('hidden'); this.stopCam();
+    this.runSearch(url);
+  },
+
+  fromFile(f){
+    if(!f) return;
+    const rd = new FileReader();
+    rd.onload = e=>{
+      $('selfiePreview').src = e.target.result;
+      $('selfiePreview').classList.remove('hidden');
+      $('camHint').classList.add('hidden'); $('cam').classList.add('hidden');
+      $('scanOverlay').classList.remove('hidden');
+      this.runSearch(e.target.result);
+    };
+    rd.readAsDataURL(f);
+  },
+
+  async runSearch(dataUrl){
+    const st = $('scanStatus');
+    try{
+      st.textContent = 'กำลังโหลดโมเดล AI…'; await Face.load();
+      const img = new Image(); img.src = dataUrl;
+      await new Promise(r=>img.onload=r);
+
+      st.textContent = 'กำลังวิเคราะห์ใบหน้า…';
+      const desc = await Face.describeOne(img);
+      if(!desc){ st.textContent=''; return Toast.show('ไม่พบใบหน้าในรูป — ลองถ่ายใหม่ในที่สว่างขึ้น','warn'); }
+
+      if($('rememberFace').checked) localStorage.setItem('fs.face', JSON.stringify(desc));
+      State.lastDescriptor = desc;
+
+      st.textContent = 'กำลังเทียบกับรูปในงาน…';
+      await this.fetchPhotos();
+      this.applyMatch(desc);
+      st.textContent = '';
+      $('scanOverlay').classList.add('hidden');
+      this.closeScan();
+    }catch(e){ st.textContent=''; Toast.show('ค้นหาไม่สำเร็จ: '+e.message,'err'); }
+  },
+
+  applyMatch(desc){
+    const thr = parseFloat($('thr').value);
+    const hits = [];
+    State.photos.forEach(p=>{
+      let best = Infinity;
+      p.descriptors.forEach(d=>{ const dist = Face.match(desc, d); if(dist < best) best = dist; });
+      p.dist = best; p.conf = Face.confidence(best);
+      if(best <= thr) hits.push(p);
+    });
+    State.mode = 'match';
+    Gallery.set(hits, `พบ ${hits.length} รูปที่มีคุณอยู่`);
+    if(hits.length) Toast.show(`เจอแล้ว ${hits.length} รูป 🎉`,'ok');
+    apiGet({ action:'track', eventId:State.eventId, type:'search', detail: JSON.stringify({matches:hits.length, thr}) }).catch(()=>{});
+  },
+
+  liveRefilter(){
+    if(State.mode!=='match' || !State.lastDescriptor) return;
+    clearTimeout(this._rt);
+    this._rt = setTimeout(()=>this.applyMatch(State.lastDescriptor), 280);
+  },
+
+  async searchWithSaved(){
+    const raw = localStorage.getItem('fs.face'); if(!raw) return;
+    try{
+      const desc = JSON.parse(raw);
+      State.lastDescriptor = desc;
+      const t = Toast.show('กำลังค้นหาด้วยใบหน้าที่บันทึกไว้…','load', 0);
+      await this.fetchPhotos();
+      this.applyMatch(desc);
+      Toast.kill(t);
+    }catch(e){ Toast.show('ใช้ใบหน้าที่บันทึกไว้ไม่ได้','err'); }
+  },
+  forgetFace(){ localStorage.removeItem('fs.face'); $('savedFaceBar').classList.add('hidden'); Toast.show('ลบใบหน้าที่บันทึกไว้แล้ว','ok'); },
+
+  shareEvent(){
+    const url = location.origin + location.pathname + '?e=' + State.eventId;
+    if(navigator.share) navigator.share({title: State.event?.name || 'งานนี้', url}).catch(()=>{});
+    else { navigator.clipboard.writeText(url); Toast.show('คัดลอกลิงก์งานแล้ว','ok'); }
   }
 };
 
-/* 6) ฝั่งผู้จัดงาน ──────────────────────────────────── */
-const Admin = {
-  async login(){
-    const pin=$('adminPin').value.trim(), err=$('adminErr'), btn=$('btnLogin');
-    if(!pin){ err.textContent='กรุณากรอกรหัส PIN'; return; }
-    err.textContent=''; btn.disabled=true;
-    $('loginSpinner').classList.remove('hidden'); $('loginBtnText').textContent='กำลังตรวจสอบ…';
+/* ============================================================
+   GALLERY
+   ============================================================ */
+const Gallery = {
+  items:[], _density:'',
 
-    const r=await apiGet({action:'listEvents', pin});
-
-    btn.disabled=false; $('loginSpinner').classList.add('hidden'); $('loginBtnText').textContent='เข้าสู่ระบบ';
-    if(!r.ok){
-      err.textContent = r.error==='Network Error'
-        ? 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบการ Deploy ของ GAS'
-        : 'รหัส PIN ไม่ถูกต้อง';
-      return;
-    }
-    State.pin=pin; sessionStorage.setItem('pin',pin); Admin.enter(r.events);
+  skeleton(n){
+    $('grid').innerHTML = Array.from({length:n},(_,i)=>
+      `<div class="skel" style="height:${160+(i%4)*70}px"></div>`).join('');
+    $('emptyState').classList.add('hidden');
   },
-  logout(){ sessionStorage.removeItem('pin'); location.href='?'; },
+  clearSkeleton(){ $('grid').innerHTML=''; },
 
-  async enter(events, keepId){
-    $('adminGate').classList.add('hidden'); $('adminConsole').classList.remove('hidden');
-    const sel=$('evSelect');
-    const prev = keepId || sel.value;
-    if(!events){ const r=await apiGet({action:'listEvents', pin:State.pin}); events=r.ok?r.events:[]; }
-    sel.innerHTML = events.map(e=>
-      `<option value="${esc(e.eventId)}">${esc(e.name)} (${esc(e.eventId)}) · ${thNum(e.photoCount)} รูป</option>`).join('')
-      || '<option value="">ยังไม่มีงาน กรุณาสร้างงานใหม่</option>';
-    if(prev && events.some(e=>e.eventId===prev)) sel.value=prev;
-    Admin.loadPhotos();
+  set(items, title){
+    this.items = items;
+    State.selected.clear(); this.syncSel();
+    $('resultBar').classList.remove('hidden');
+    $('resultTitle').textContent = title;
+    $('sortBy').value = State.mode==='match' ? 'match' : 'new';
+    this.render();
+  },
+  density(d){ this._density = d; $('grid').className = 'masonry mt-5 ' + d; },
+
+  sorted(){
+    const by = $('sortBy').value;
+    const a = [...this.items];
+    if(by==='match') a.sort((x,y)=>(x.dist??9)-(y.dist??9));
+    else if(by==='name') a.sort((x,y)=>x.name.localeCompare(y.name));
+    else a.sort((x,y)=> (new Date(y.at)-new Date(x.at)) || 0);
+    return a;
+  },
+
+  render(){
+    const list = this.sorted();
+    const g = $('grid');
+    $('emptyState').classList.toggle('hidden', list.length>0);
+    $('btnZip').disabled = !list.length;
+    g.innerHTML = list.map((p,i)=>{
+      const conf = p.conf!=null ? `<span class="badge ${p.conf>=75?'hi':''}">ตรง ${p.conf}%</span>` : '';
+      return `<div class="tile ${State.selected.has(p.id)?'sel':''}" data-id="${p.id}" style="animation-delay:${Math.min(i*32,500)}ms" onclick="Lightbox.open('${p.id}')">
+        <img src="${p.thumb}" loading="lazy" decoding="async" alt="${p.name}" onerror="this.src='${p.full}'" />
+        <div class="veil"></div>
+        ${conf}
+        <div class="check" onclick="event.stopPropagation();Gallery.toggle('${p.id}')">✓</div>
+        <div class="tools" onclick="event.stopPropagation()">
+          <button class="tbtn" title="ดาวน์โหลด" onclick="Gallery.downloadOne('${p.id}')">⤓</button>
+          <button class="tbtn" title="แชร์" onclick="Gallery.shareOne('${p.id}')">↗</button>
+          <span class="text-[.7rem] text-white/80 truncate ml-1">${p.name}</span>
+        </div>
+      </div>`;
+    }).join('');
+    Lightbox.list = list;
+  },
+
+  toggle(id){
+    State.selected.has(id) ? State.selected.delete(id) : State.selected.add(id);
+    document.querySelector(`.tile[data-id="${id}"]`)?.classList.toggle('sel', State.selected.has(id));
+    this.syncSel();
+  },
+  selectAll(){ this.items.forEach(p=>State.selected.add(p.id)); this.render(); this.syncSel(); },
+  clearSel(){ State.selected.clear(); this.render(); this.syncSel(); },
+  syncSel(){
+    $('selBar').classList.toggle('hidden', State.selected.size===0);
+    $('selCount').textContent = State.selected.size;
+  },
+
+  find(id){ return this.items.find(p=>p.id===id); },
+
+  async downloadOne(id){
+    const p = this.find(id); if(!p) return;
+    const t = Toast.show('กำลังเตรียมไฟล์…','load',0);
+    try{
+      const r = await apiGet({action:'download', fileId:p.fileId});
+      const a = document.createElement('a');
+      a.href = 'data:application/octet-stream;base64,' + r.base64;
+      a.download = r.fileName || p.name; a.click();
+      Toast.kill(t); Toast.show('ดาวน์โหลดแล้ว','ok');
+    }catch(e){ Toast.kill(t); Toast.show('ดาวน์โหลดไม่สำเร็จ','err'); }
+  },
+  shareOne(id){
+    const p = this.find(id); if(!p) return;
+    if(navigator.share) navigator.share({title:p.name, url:p.full}).catch(()=>{});
+    else { navigator.clipboard.writeText(p.full); Toast.show('คัดลอกลิงก์รูปแล้ว','ok'); }
+  },
+
+  async downloadZip(onlySelected=false){
+    let list = onlySelected ? this.items.filter(p=>State.selected.has(p.id)) : this.sorted();
+    if(!list.length) return Toast.show('ไม่มีรูปให้ดาวน์โหลด','warn');
+    const btn = $('btnZip'); btn.disabled = true;
+    const t = Toast.show(`กำลังรวมไฟล์ 0/${list.length}…`,'load',0);
+    try{
+      const zip = new JSZip();
+      let done = 0;
+      for(const p of list){
+        try{
+          const r = await apiGet({action:'download', fileId:p.fileId});
+          zip.file(r.fileName || p.name, r.base64, {base64:true});
+        }catch(e){}
+        done++;
+        t.querySelector('span:nth-child(2)').textContent = `กำลังรวมไฟล์ ${done}/${list.length}…`;
+      }
+      const blob = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${(State.event?.name||'facesnap').replace(/\s+/g,'-')}-photos.zip`;
+      a.click(); URL.revokeObjectURL(a.href);
+      Toast.kill(t); Toast.show(`ดาวน์โหลด ${done} รูปเรียบร้อย 📦`,'ok');
+    }catch(e){ Toast.kill(t); Toast.show('สร้าง ZIP ไม่สำเร็จ','err'); }
+    finally{ btn.disabled = false; }
+  }
+};
+
+/* ============================================================
+   LIGHTBOX
+   ============================================================ */
+const Lightbox = {
+  list:[], i:0,
+  open(id){
+    this.i = Math.max(0, this.list.findIndex(p=>p.id===id));
+    $('lightbox').classList.add('on'); document.body.style.overflow='hidden';
+    this.paint();
+  },
+  paint(){
+    const p = this.list[this.i]; if(!p) return;
+    const img = $('lbImg'); img.classList.remove('zoom'); img.src = p.full;
+    $('lbName').textContent = p.name;
+    $('lbMeta').textContent = `${this.i+1} / ${this.list.length}` + (p.conf!=null ? ` · ตรงกัน ${p.conf}%` : '');
+    $('lbFilm').innerHTML = this.list.map((x,i)=>
+      `<img src="${x.thumb}" class="${i===this.i?'act':''}" onclick="Lightbox.jump(${i})" loading="lazy" alt="">`).join('');
+    $('lbFilm').querySelector('.act')?.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  },
+  jump(i){ this.i=i; this.paint(); },
+  next(){ this.i=(this.i+1)%this.list.length; this.paint(); },
+  prev(){ this.i=(this.i-1+this.list.length)%this.list.length; this.paint(); },
+  close(){ $('lightbox').classList.remove('on'); document.body.style.overflow=''; },
+  download(){ Gallery.downloadOne(this.list[this.i].id); },
+  share(){ Gallery.shareOne(this.list[this.i].id); }
+};
+let tx=0;
+$('lightbox').addEventListener('touchstart', e=>tx=e.touches[0].clientX, {passive:true});
+$('lightbox').addEventListener('touchend', e=>{
+  const d = e.changedTouches[0].clientX - tx;
+  if(Math.abs(d)>60) d>0 ? Lightbox.prev() : Lightbox.next();
+}, {passive:true});
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+const Admin = {
+  pin:null, events:[], photos:[], failed:[], lastLink:'',
+
+  async login(){
+    const pin = $('adminPin').value.trim();
+    if(!pin) return $('adminErr').textContent = 'กรุณากรอก PIN';
+    $('loginSpinner').classList.remove('hidden'); $('loginBtnText').textContent='กำลังตรวจสอบ…'; $('btnLogin').disabled=true;
+    try{
+      const r = await apiGet({action:'listEvents', pin});
+      this.pin = pin; this.events = r.events || [];
+      if($('keepPin').checked) sessionStorage.setItem('fs.pin', pin);
+      $('adminGate').classList.add('hidden'); $('adminConsole').classList.remove('hidden');
+      $('adminErr').textContent='';
+      this.fillEvents(); await this.loadPhotos();
+      Toast.show('ยินดีต้อนรับกลับมา 👋','ok');
+    }catch(e){
+      $('adminErr').textContent = 'PIN ไม่ถูกต้อง หรือเชื่อมต่อไม่ได้';
+      $('adminPin').value=''; $('adminPin').focus();
+    }finally{
+      $('loginSpinner').classList.add('hidden'); $('loginBtnText').textContent='เข้าสู่ระบบ'; $('btnLogin').disabled=false;
+    }
+  },
+  logout(){
+    this.pin=null; sessionStorage.removeItem('fs.pin');
+    $('adminConsole').classList.add('hidden'); $('adminGate').classList.remove('hidden'); $('adminPin').value='';
+  },
+  async refresh(){
+    try{
+      const r = await apiGet({action:'listEvents', pin:this.pin});
+      this.events = r.events||[]; this.fillEvents(); await this.loadPhotos();
+      Toast.show('อัปเดตข้อมูลแล้ว','ok');
+    }catch(e){ Toast.show('รีเฟรชไม่สำเร็จ','err'); }
+  },
+
+  fillEvents(){
+    $('evSelect').innerHTML = this.events.length
+      ? this.events.map(e=>`<option value="${e.eventId||e.id}">${e.name||e.eventName} ${e.eventDate?'· '+e.eventDate:''}</option>`).join('')
+      : '<option value="">— ยังไม่มีงาน กรุณาสร้างงานใหม่ —</option>';
+    $('stEvents').textContent = this.events.length;
   },
 
   async createEvent(){
-    const body={action:'createEvent', pin:State.pin, name:$('evName').value.trim(),
-      eventDate:$('evDate').value, venue:$('evVenue').value.trim(),
-      themeColor:$('evColor').value, sponsorLogoUrl:$('evSponsor').value.trim()};
-    if(!body.name) return toast('กรอกชื่องานก่อน');
-    const r=await apiPost(body);
-    if(!r.ok) return toast('สร้างงานไม่สำเร็จ: '+(r.error||'Network Error'));
-    const link=location.origin+location.pathname+'?event='+r.event.eventId;
-    $('qr').innerHTML=''; new QRCode($('qr'),{text:link,width:220,height:220,correctLevel:QRCode.CorrectLevel.H});
-    $('qrLink').textContent=link; $('qrBox').classList.remove('hidden');
-    toast('สร้างงานเรียบร้อย');
-    $('evName').value=''; $('evVenue').value='';
-    Admin.enter(null, r.event.eventId);
+    const name = $('evName').value.trim();
+    if(!name) return Toast.show('ใส่ชื่องานก่อนนะครับ','warn');
+    $('btnCreate').disabled = true;
+    const t = Toast.show('กำลังสร้างงาน…','load',0);
+    try{
+      const r = await apiPost({
+        action:'createEvent', pin:this.pin, name,
+        eventDate: $('evDate').value, venue: $('evVenue').value.trim(),
+        themeColor: $('evColor').value, sponsorLogoUrl: $('evSponsor').value.trim()
+      });
+      const ev = r.event || r.data;
+      const id = ev.eventId || ev.id;
+      this.events.unshift(ev); this.fillEvents(); $('evSelect').value = id;
+      this.renderQR(id);
+      $('evName').value=''; $('evVenue').value=''; $('evSponsor').value='';
+      await this.loadPhotos();
+      Toast.kill(t); Toast.show('สร้างงานสำเร็จ 🎉','ok');
+    }catch(e){ Toast.kill(t); Toast.show('สร้างงานไม่สำเร็จ: '+e.message,'err'); }
+    finally{ $('btnCreate').disabled = false; }
+  },
+
+  renderQR(id){
+    const url = location.origin + location.pathname + '?e=' + id;
+    this.lastLink = url;
+    $('qr').innerHTML = '';
+    new QRCode($('qr'), { text:url, width:180, height:180, correctLevel: QRCode.CorrectLevel.H });
+    $('qrLink').textContent = url;
+    $('qrBox').classList.remove('hidden');
   },
   downloadQR(){
-    const cv=$('qr').querySelector('canvas'); if(!cv) return;
-    const a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='event-qr.png'; a.click();
+    const c = $('qr').querySelector('canvas'), im = $('qr').querySelector('img');
+    const a = document.createElement('a');
+    a.href = c ? c.toDataURL('image/png') : im.src;
+    a.download = 'facesnap-qr.png'; a.click();
   },
-
-  async queue(files){
-    const eventId=$('evSelect').value;
-    if(!eventId) return toast('สร้างหรือเลือกงานก่อนอัปโหลด');
-    const list=Array.from(files||[]); if(!list.length) return;
-    let done=0, ok=0, faces=0;
-    try{ await Face.load(m=>$('upStatus').textContent=m); }
-    catch(e){ return toast('โหลดโมเดลไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต'); }
-
-    for(const f of list){
-      $('upStatus').textContent=`กำลังวิเคราะห์ ${f.name} (${done+1}/${list.length})…`;
-      try{
-        const {dataUrl,canvas,width,height}=await resizeToDataUrl(f,2000,.86);
-        const descriptors=await Face.describeAll(canvas);
-        const r=await apiPost({action:'uploadPhoto', pin:State.pin, eventId, fileName:f.name,
-                               mimeType:'image/jpeg', dataUrl, width, height, descriptors});
-        if(r.ok){ ok++; faces+=descriptors.length; } else console.warn(f.name,r.error);
-      }catch(e){ console.warn(f.name,e); }
-      done++; $('upBar').style.width=(done/list.length*100)+'%';
-    }
-    $('upStatus').textContent = ok===list.length
-      ? `อัปโหลดสำเร็จ ${thNum(ok)} รูป · พบใบหน้า ${thNum(faces)} ใบหน้า`
-      : `อัปโหลดสำเร็จ ${thNum(ok)} จาก ${thNum(list.length)} รูป · พบใบหน้า ${thNum(faces)} ใบหน้า`;
-    $('fileInput').value='';
-    Admin.enter(null, eventId);
+  copyLink(){ navigator.clipboard.writeText(this.lastLink); Toast.show('คัดลอกลิงก์แล้ว','ok'); },
+  printQR(){
+    const w = window.open('','_blank');
+    const src = $('qr').querySelector('canvas')?.toDataURL() || $('qr').querySelector('img')?.src;
+    w.document.write(`<body style="font-family:sans-serif;text-align:center;padding:60px">
+      <h1 style="font-size:34px">สแกนเพื่อรับรูปของคุณ</h1>
+      <p style="color:#666">ถ่ายเซลฟี่ 1 รูป แล้วรับภาพทุกใบที่มีคุณอยู่</p>
+      <img src="${src}" style="width:340px;margin:32px auto;display:block">
+      <p style="font-size:13px;color:#888">${this.lastLink}</p>
+      <script>onload=()=>print()<\/script></body>`);
+  },
+  shareEventLink(){
+    const id = $('evSelect').value; if(!id) return;
+    const url = location.origin + location.pathname + '?e=' + id;
+    navigator.clipboard.writeText(url); Toast.show('คัดลอกลิงก์สำหรับผู้ร่วมงานแล้ว','ok');
   },
 
   async loadPhotos(){
-    const eventId=$('evSelect').value; if(!eventId) return;
-    const r=await apiGet({action:'listPhotos', eventId, withDescriptors:0});
-    const photos=r.ok?r.photos:[];
-    $('adminCount').textContent=`${thNum(photos.length)} รูป`;
-    $('adminGrid').innerHTML=photos.map(p=>`
-      <figure class="ph group">
-        <img src="${esc(p.thumbUrl)}" loading="lazy" alt="${esc(p.fileName)}" class="w-full block" />
-        <figcaption class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span class="text-[11px] text-white px-2.5 py-1 rounded-full" style="background:rgba(0,0,0,.6);backdrop-filter:blur(6px)">${thNum(p.faceCount)} ใบหน้า</span>
-          <button onclick="Admin.del('${esc(p.photoId)}')" class="text-[11px] text-white px-2.5 py-1 rounded-full font-semibold" style="background:#E23D50">ลบ</button>
-        </figcaption>
-      </figure>`).join('') || '<p class="text-sm" style="color:var(--muted)">ยังไม่มีรูปในงานนี้ อัปโหลดรูปแรกได้เลย</p>';
+    const id = $('evSelect').value; if(!id){ $('adminGrid').innerHTML=''; return; }
+    $('adminGrid').innerHTML = Array.from({length:6},(_,i)=>`<div class="skel" style="height:${150+(i%3)*60}px"></div>`).join('');
+    try{
+      const r = await apiGet({action:'listPhotos', eventId:id, withDescriptors:0});
+      this.photos = (r.photos||[]).map(normalize);
+      const faces = this.photos.reduce((s,p)=>s + (+p.faceCount || p.descriptors.length || 0), 0);
+      $('stPhotos').textContent = this.photos.length;
+      $('stFaces').textContent = faces || '—';
+      $('stNoFace').textContent = this.photos.filter(p=>(p.descriptors.length||0)===0 && p.faceCount===0).length;
+      $('adminCount').textContent = this.photos.length + ' รูป';
+      $('adminGrid').innerHTML = this.photos.map((p,i)=>
+        `<div class="tile" style="animation-delay:${Math.min(i*28,400)}ms">
+          <img src="${p.thumb}" loading="lazy" alt="${p.name}">
+          <div class="veil"></div>
+          <div class="tools">
+            <button class="tbtn" title="ลบรูป" onclick="Admin.del('${p.id}')">🗑</button>
+            <span class="text-[.7rem] text-white/80 truncate ml-1">${p.name}</span>
+          </div>
+        </div>`).join('') || `<p class="text-sm" style="color:var(--muted)">ยังไม่มีรูปในงานนี้</p>`;
+    }catch(e){ $('adminGrid').innerHTML=''; Toast.show('โหลดรูปไม่สำเร็จ','err'); }
   },
+
   async del(photoId){
-    if(!confirm('ลบรูปนี้ถาวรใช่หรือไม่')) return;
-    const r=await apiPost({action:'deletePhoto', pin:State.pin, photoId});
-    if(!r.ok) return toast('ลบไม่สำเร็จ');
-    toast('ลบรูปแล้ว'); Admin.loadPhotos();
+    if(!confirm('ลบรูปนี้ถาวร แน่ใจไหม?')) return;
+    try{
+      await apiPost({action:'deletePhoto', pin:this.pin, photoId});
+      Toast.show('ลบรูปแล้ว','ok'); await this.loadPhotos();
+    }catch(e){ Toast.show('ลบไม่สำเร็จ: '+e.message,'err'); }
+  },
+
+  /* ---------- upload pipeline ---------- */
+  async queue(files){
+    const id = $('evSelect').value;
+    if(!id) return Toast.show('เลือกงานก่อนอัปโหลด','warn');
+    const list = Array.from(files).filter(f=>f.type.startsWith('image/'));
+    if(!list.length) return;
+
+    this.failed = [];
+    $('btnRetry').classList.add('hidden');
+    $('upLog').innerHTML = '';
+    const rows = new Map();
+    list.forEach((f,i)=>{
+      const el = document.createElement('div');
+      el.className = 'uprow';
+      el.innerHTML = `<span class="udot" style="background:var(--muted)"></span><span class="flex-1 truncate">${f.name}</span><span class="text-xs" style="color:var(--muted)">รอคิว</span>`;
+      $('upLog').appendChild(el); rows.set(i, el);
+    });
+
+    const t0 = Date.now();
+    let done = 0;
+    const setRow = (i,color,txt)=>{ const r=rows.get(i); if(!r) return; r.querySelector('.udot').style.background=color; r.lastElementChild.textContent=txt; };
+    const bump = ()=>{ done++; $('upBar').style.width = (done/list.length*100)+'%';
+      $('upStatus').textContent = `อัปโหลด ${done}/${list.length} · ผ่านไป ${((Date.now()-t0)/1000).toFixed(0)} วิ`; };
+
+    await Face.load();
+    const conc = +$('upConc').value;
+    let cursor = 0;
+    const worker = async ()=>{
+      while(cursor < list.length){
+        const i = cursor++; const f = list[i];
+        setRow(i,'var(--brand)','กำลังประมวลผล…');
+        try{
+          const { dataUrl, w, h, canvas } = await this.prepare(f);
+          setRow(i,'var(--brand)','สแกนใบหน้า…');
+          const descriptors = await Face.describeAll(canvas);
+          setRow(i,'var(--brand)',`อัปโหลด (${descriptors.length} หน้า)…`);
+          await apiPost({
+            action:'uploadPhoto', pin:this.pin, eventId:id,
+            fileName:f.name, mimeType:'image/jpeg', dataUrl,
+            width:w, height:h, descriptors
+          });
+          setRow(i,'#3DDC97', `เสร็จ · ${descriptors.length} ใบหน้า`);
+        }catch(e){
+          setRow(i,'#FF6B6B','ล้มเหลว'); this.failed.push(f);
+        }
+        bump();
+      }
+    };
+    $('upStatus').textContent = 'เริ่มทำงาน…';
+    await Promise.all(Array.from({length:conc}, worker));
+
+    $('upStatus').textContent = `เสร็จสิ้น · สำเร็จ ${list.length-this.failed.length} / ล้มเหลว ${this.failed.length}`;
+    if(this.failed.length) $('btnRetry').classList.remove('hidden');
+    Toast.show(`อัปโหลดเสร็จ ${list.length-this.failed.length}/${list.length} รูป`, this.failed.length?'warn':'ok');
+    setTimeout(()=>$('upBar').style.width='0%', 2500);
+    $('fileInput').value = '';
+    await this.loadPhotos();
+  },
+
+  retryFailed(){ const f = this.failed; this.failed=[]; this.queue(f); },
+
+  prepare(file){
+    return new Promise((res,rej)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const MAX = +$('upMax').value;
+        const sc = Math.min(1, MAX/Math.max(img.width,img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width*sc); c.height = Math.round(img.height*sc);
+        const ctx = c.getContext('2d'); ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,0,0,c.width,c.height);
+        res({ dataUrl:c.toDataURL('image/jpeg',.88), w:c.width, h:c.height, canvas:c });
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror = rej;
+      img.src = URL.createObjectURL(file);
+    });
   }
 };
 
-/* 7) เริ่มระบบ ──────────────────────────────────────── */
-Theme.init();
-['dragover','drop'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault()));
-const dz=$('dropZone');
-if(dz){
-  dz.addEventListener('dragover',()=>{dz.style.borderColor='var(--brand)';dz.style.background='var(--card)'});
-  dz.addEventListener('dragleave',()=>{dz.style.borderColor='';dz.style.background=''});
-  dz.addEventListener('drop',e=>{ dz.style.borderColor='';dz.style.background=''; Admin.queue(e.dataTransfer.files); });
-}
-/* การ์ดฮีโร่เอียงตามเมาส์ */
-const ht=$('heroTilt');
-if(ht){
-  ht.addEventListener('mousemove',e=>{
-    const r=ht.getBoundingClientRect();
-    ht.style.setProperty('--ry',((e.clientX-r.left)/r.width-.5)*14+'deg');
-    ht.style.setProperty('--rx',(.5-(e.clientY-r.top)/r.height)*14+'deg');
-  });
-  ht.addEventListener('mouseleave',()=>{ht.style.setProperty('--ry','0deg');ht.style.setProperty('--rx','0deg')});
-}
-document.addEventListener('keydown',e=>{
-  if($('lightbox').classList.contains('flex')){
-    if(e.key==='Escape') Gallery.closeLightbox();
-    if(e.key==='ArrowRight') Gallery.step(1);
-    if(e.key==='ArrowLeft')  Gallery.step(-1);
+/* Drag & drop */
+(function(){
+  const dz = $('dropZone'); if(!dz) return;
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev, e=>{
+    e.preventDefault(); dz.style.borderColor='var(--brand)'; dz.style.background='rgba(var(--brand-rgb),.07)';
+  }));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev, e=>{
+    e.preventDefault(); dz.style.borderColor='var(--line)'; dz.style.background='transparent';
+  }));
+  dz.addEventListener('drop', e=>Admin.queue(e.dataTransfer.files));
+})();
+
+/* ============================================================
+   COMMAND PALETTE
+   ============================================================ */
+const Cmd = {
+  cmds:[
+    {t:'ไปหน้าแรก', k:'home landing หน้าแรก', run:()=>Router.go('landing')},
+    {t:'ค้นหารูปของฉัน (เซลฟี่)', k:'search selfie ค้นหา', run:()=>{ if(State.eventId){Router.go('event');Attendee.startScan();} else Toast.show('เข้าสู่งานก่อนนะครับ','warn'); }},
+    {t:'ดูรูปทั้งหมดในงาน', k:'all photos ทั้งหมด', run:()=>State.eventId ? Attendee.showAll() : Toast.show('เข้าสู่งานก่อนนะครับ','warn')},
+    {t:'ดาวน์โหลด ZIP', k:'zip download โหลด', run:()=>Gallery.downloadZip()},
+    {t:'แผงควบคุมผู้จัดงาน', k:'admin organizer ผู้จัด', run:()=>Router.go('admin')},
+    {t:'สลับธีม สว่าง/มืด', k:'theme dark light ธีม', run:()=>Theme.toggle()},
+    {t:'ลบใบหน้าที่บันทึกไว้', k:'forget face ลืม', run:()=>Attendee.forgetFace()},
+  ],
+  idx:0, shown:[],
+  open(){ $('cmdk').classList.add('on'); $('cmdInput').value=''; this.filter(); setTimeout(()=>$('cmdInput').focus(),40); },
+  close(){ $('cmdk').classList.remove('on'); },
+  filter(){
+    const q = $('cmdInput').value.toLowerCase().trim();
+    this.shown = this.cmds.filter(c=>!q || c.t.toLowerCase().includes(q) || c.k.includes(q));
+    if(q && !this.shown.length) this.shown = [{t:`เข้าสู่งาน "${q}"`, run:()=>Router.openEvent(q)}];
+    this.idx = 0; this.paint();
+  },
+  paint(){
+    $('cmdList').innerHTML = this.shown.map((c,i)=>
+      `<div class="cmd-row ${i===this.idx?'act':''}" onclick="Cmd.run(${i})"><span class="brand-text">›</span><span class="font-medium">${c.t}</span></div>`).join('')
+      || `<p class="px-3 py-4 text-sm" style="color:var(--muted)">ไม่พบคำสั่ง</p>`;
+  },
+  run(i){ const c = this.shown[i]; if(c){ this.close(); c.run(); } },
+  key(e){
+    if(e.key==='ArrowDown'){ e.preventDefault(); this.idx=(this.idx+1)%this.shown.length; this.paint(); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); this.idx=(this.idx-1+this.shown.length)%this.shown.length; this.paint(); }
+    if(e.key==='Enter'){ e.preventDefault(); this.run(this.idx); }
   }
+};
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+   ============================================================ */
+addEventListener('keydown', e=>{
+  const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); Cmd.open(); return; }
+  if(e.key==='Escape'){ Cmd.close(); Lightbox.close(); if(!$('scanPanel').classList.contains('hidden')) Attendee.closeScan(); return; }
+  if(typing) return;
+  if($('lightbox').classList.contains('on')){
+    if(e.key==='ArrowRight') Lightbox.next();
+    if(e.key==='ArrowLeft') Lightbox.prev();
+    if(e.key.toLowerCase()==='d') Lightbox.download();
+    return;
+  }
+  if(e.key==='/'){ e.preventDefault(); $('joinCode')?.focus(); }
+  if(e.key.toLowerCase()==='s' && State.eventId) Attendee.startScan();
 });
-Router.init();
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+$('yr').textContent = new Date().getFullYear();
+Theme.init();
+observeReveal();
+Router.boot();
+Recent.render();
+Face.load().catch(()=>{}); // warm-up แบบไม่บล็อก UI
+
+const savedPin = sessionStorage.getItem('fs.pin');
+if(savedPin){ $('adminPin').value = savedPin; if(location.hash.startsWith('#/admin')) Admin.login(); }
 </script>
 </body>
 </html>
