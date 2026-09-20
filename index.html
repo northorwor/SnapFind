@@ -581,7 +581,7 @@ const Gallery = {
     State.view = list;
     $('resultBar').classList.remove('hidden');$('resultTitle').textContent = title;
     
-    // แก้ไขบั๊ก \vert{}\vert{} เป็น || ตรงนี้
+    // แก้บั๊กเครื่องหมายตรงนี้ให้เป็น ||
     $('btnZip').classList.toggle('hidden', !list.length \vert{}\vert{} !(State.event && State.event.allowDownload));$('emptyState').classList.toggle('hidden', list.length>0);
 
     $('grid').innerHTML = list.map((p,i)=>`
@@ -715,7 +715,7 @@ const Admin = {
         if(!r.ok) console.warn(f.name, r.error);
       }catch(e){ console.warn(f.name, e); }
       
-      // แก้ไขบั๊กปีกกาปิด Loop ตรงนี้
+      // แก้บั๊กเครื่องหมาย % ตรงนี้
       done++; $('upBar').style.width = (done/list.length*100)+'\%';     }$('upStatus').textContent = `✅ อัปโหลดสำเร็จ ${done} รูป · บันทึกใบหน้าได้ ${faces} ใบหน้า`;
     $('fileInput').value=''; Admin.loadPhotos(); Admin.enter();
   },
